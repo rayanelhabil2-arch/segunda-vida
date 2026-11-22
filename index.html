@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Segunda Vida · Prototipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F0E6; --surface:#FFFDF8; --surface-2:#EFE8DA; --ink:#1F2A24; --ink-2:#4E5A52; --muted:#6B746D;
+  --line:#E2D9C7; --moss:#2F5D45; --moss-2:#E2ECE3; --accent:#C8562E; --accent-ink:#fff; --accent-soft:#F7E2D7;
+  --sand:#E9DCC3; --sun:#E8B04B; --sky:#BFD6D9; --rose:#E9B9A6;
+  --r:18px; --r-sm:12px; --shadow:0 1px 2px rgba(31,42,36,.06),0 8px 24px rgba(31,42,36,.07);
+  --font:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --display:"Fraunces",Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:84px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--moss)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+h1,h2,h3{font-family:var(--display);font-weight:650;letter-spacing:-.01em;line-height:1.15;margin:0}
+h1{font-size:clamp(1.9rem,6vw,3.2rem)} h2{font-size:clamp(1.4rem,4.2vw,2rem)} h3{font-size:1.15rem}
+p{margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* Topbar */
+.topbar{position:sticky;top:0;z-index:30;background:rgba(245,240,230,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;gap:10px;height:62px}
+.logo{white-space:nowrap;flex:none;display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:650;font-size:1.2rem;background:none;border:0;padding:4px}
+.logo-mark{width:30px;height:30px}
+.back{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:none;align-items:center;justify-content:center}
+.back.show{display:flex}
+.deskNav{display:none;gap:2px;margin-left:12px}
+.deskNav button{white-space:nowrap;background:none;border:0;padding:8px 11px;border-radius:10px;color:var(--ink-2);font-weight:500;font-size:.94rem}
+.deskNav button:hover{background:var(--surface-2)}
+.deskNav button.on{color:var(--ink);background:var(--surface-2)}
+.spacer{flex:1}
+.pill-demo{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--sand);color:#5b4a2c;padding:4px 8px;border-radius:99px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:12px 18px;font-weight:600;min-height:46px;transition:transform .15s ease,background .2s,box-shadow .2s}
+.btn:active{transform:scale(.97)}
+.btn>svg{width:18px;height:18px;flex:none}
+.btn-primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 16px rgba(200,86,46,.28)}
+.btn-primary:hover{background:#b44a25}
+.btn-dark{background:var(--moss);color:#fff}
+.btn-dark:hover{background:#244a37}
+.btn-ghost{background:var(--surface);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--surface-2)}
+.btn-sm{min-height:38px;padding:8px 13px;border-radius:11px;font-size:.9rem}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.surprise-top{display:none}
+
+/* Tabbar */
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+.tabbar button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.72rem;font-weight:600;color:var(--muted);padding:6px 0;min-height:52px;border-radius:12px}
+.tabbar button svg{width:24px;height:24px}
+.tabbar button.on{color:var(--moss)}
+.tabbar .tab-create span.ic{background:var(--accent);color:#fff;width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 6px 16px rgba(200,86,46,.35)}
+.tabbar .tab-create.on{color:var(--accent)}
+
+@media (min-width:900px){
+  body{padding-bottom:0}
+  .tabbar{display:none}
+  .deskNav{display:flex}
+  .surprise-top{display:inline-flex}
+  .deskNav .xl{display:none}
+}
+@media (min-width:1220px){.deskNav .xl{display:inline-block}}
+
+/* View */
+main{min-height:70vh}
+.view{animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+section{padding:26px 0}
+.eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lead{color:var(--ink-2);font-size:1.06rem;max-width:58ch}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stack>*+*{margin-top:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.pad{padding:18px}
+.grid{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:620px){.grid.g2,.grid.g3{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:960px){.grid.g3{grid-template-columns:repeat(3,1fr)}}
+.notice{display:flex;gap:10px;align-items:flex-start;background:var(--moss-2);color:#1d3b2b;border-radius:var(--r-sm);padding:12px 14px;font-size:.9rem}
+.notice svg{flex:none;margin-top:2px}
+.notice.warm{background:var(--accent-soft);color:#6b2a12}
+
+/* Hero */
+.hero{padding:28px 0 8px}
+.hero-grid{display:grid;gap:22px;align-items:center}
+@media(min-width:900px){.hero-grid{grid-template-columns:1.1fr .9fr;gap:40px}.hero{padding:56px 0 20px}}
+.hero h1 em{font-style:italic;color:var(--moss)}
+.hero-art{border-radius:28px;overflow:hidden;background:var(--sand);aspect-ratio:5/4;position:relative}
+.hero-art svg{width:100%;height:100%;display:block}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:8px 14px;font-size:.9rem;font-weight:500;min-height:40px;display:inline-flex;align-items:center;gap:6px;transition:background .15s,border-color .15s,color .15s}
+.chip:hover{border-color:#cbbfa6}
+.chip.on{background:var(--moss);border-color:var(--moss);color:#fff}
+.chip.ex{background:var(--surface)}
+.chip.ex:hover{background:var(--accent-soft);border-color:var(--accent)}
+
+.steps3{display:grid;gap:12px}
+@media(min-width:760px){.steps3{grid-template-columns:repeat(3,1fr)}}
+.step3 .num{width:34px;height:34px;border-radius:11px;background:var(--accent-soft);color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+
+/* Categories */
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(min-width:760px){.cats{grid-template-columns:repeat(8,1fr)}}
+.cat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.82rem;font-weight:600;transition:transform .15s,border-color .15s}
+.cat:hover{transform:translateY(-2px);border-color:#cbbfa6}
+.cat.on{border-color:var(--moss);background:var(--moss-2)}
+.cat svg{width:34px;height:34px}
+
+/* Project cards */
+.pcard{overflow:hidden;display:flex;flex-direction:column;transition:transform .2s ease,box-shadow .2s}
+.pcard:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(31,42,36,.06),0 16px 32px rgba(31,42,36,.1)}
+.pcard .thumb{position:relative;aspect-ratio:16/10;background:var(--sand);border:0;padding:0;display:block;width:100%}
+.pcard .thumb svg{width:100%;height:100%;display:block}
+.pcard .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.pcard h3{font-size:1.12rem}
+.pcard .open{background:none;border:0;padding:0;text-align:left}
+.fav{position:absolute;top:10px;right:10px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,253,248,.92);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:transform .2s}
+.fav:active{transform:scale(.85)}
+.fav svg{width:20px;height:20px}
+.fav.on svg path{fill:var(--accent);stroke:var(--accent)}
+.fav.pop{animation:pop .35s ease}
+@keyframes pop{50%{transform:scale(1.25)}}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{font-size:.75rem;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--surface-2);color:var(--ink-2);display:inline-flex;align-items:center;gap:4px}
+.badge.extra{background:var(--accent-soft);color:#8a3415}
+.badge.ok{background:var(--moss-2);color:#1d4a32}
+.badge.prem{background:#2a2a24;color:#f2d38a}
+.badge.done{background:var(--moss);color:#fff}
+.tagline{position:absolute;left:10px;top:10px;display:flex;gap:6px}
+.lockveil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(31,42,36,.05),rgba(31,42,36,.55));display:flex;align-items:flex-end;padding:12px;color:#fff;font-weight:600;font-size:.88rem;gap:6px}
+.reasons{display:flex;flex-wrap:wrap;gap:6px}
+.reason{font-size:.75rem;color:var(--moss);font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.meta{display:flex;gap:12px;color:var(--muted);font-size:.85rem;flex-wrap:wrap}
+.meta span{display:inline-flex;align-items:center;gap:4px}
+
+/* Filters */
+.filters{display:flex;flex-direction:column;gap:10px;margin:14px 0 6px}
+.frow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;align-items:center}
+.frow::-webkit-scrollbar{display:none}
+.frow .lab{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);flex:none;width:76px}
+.frow .chip{flex:none;min-height:36px;padding:6px 12px;font-size:.86rem}
+.resbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 14px;flex-wrap:wrap}
+
+/* Form */
+.form{display:grid;gap:18px}
+.field label.lbl,.field .lbl{display:block;font-weight:600;margin-bottom:8px}
+.field .hint{font-size:.84rem;color:var(--muted);margin-top:6px}
+.input,.select{width:100%;min-height:50px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;font-size:1rem;transition:border-color .15s,box-shadow .15s}
+.input:focus,.select:focus{outline:none;border-color:var(--moss);box-shadow:0 0 0 4px rgba(47,93,69,.14)}
+.input.err{border-color:var(--accent);box-shadow:0 0 0 4px rgba(200,86,46,.14)}
+.errmsg{color:#a43e1b;font-size:.86rem;margin-top:6px;font-weight:500}
+.two{display:grid;gap:18px}
+@media(min-width:620px){.two{grid-template-columns:1fr 1fr}}
+.stepper{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);width:max-content}
+.stepper button{width:48px;height:48px;border:0;background:none;font-size:1.3rem;font-weight:600}
+.stepper output{min-width:44px;text-align:center;font-weight:700;font-size:1.1rem}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--surface-2);padding:5px;border-radius:14px}
+.seg button{border:0;background:none;border-radius:10px;padding:10px 4px;font-weight:600;font-size:.88rem;min-height:44px;color:var(--ink-2)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.checks .chip svg{width:16px;height:16px}
+.formwrap{display:grid;gap:22px}
+@media(min-width:900px){.formwrap{grid-template-columns:1.4fr .8fr;align-items:start}.formside{position:sticky;top:84px}}
+
+/* Loader */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;min-height:55vh}
+.spin{width:64px;height:64px}
+.spin circle{transform-origin:center;animation:spin 1.1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Detail */
+.detail-grid{display:grid;gap:22px}
+@media(min-width:900px){.detail-grid{grid-template-columns:1fr 1fr;align-items:start}.detail-aside{position:sticky;top:84px}}
+.detail-art{border-radius:24px;overflow:hidden;aspect-ratio:16/11;background:var(--sand);position:relative}
+.detail-art svg{width:100%;height:100%;display:block}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.fact b{display:block;font-size:1rem}
+.fact span{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.mlist{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.mlist li{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:.94rem}
+.mlist li .dot{width:22px;height:22px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center}
+.mlist li.have .dot{background:var(--moss-2);color:var(--moss)}
+.mlist li.need{border-color:#efc6b3;background:#fff7f2}
+.mlist li.need .dot{background:var(--accent-soft);color:var(--accent)}
+.mlist li .tag{margin-left:auto;font-size:.74rem;font-weight:700;color:var(--muted)}
+.mlist li.need .tag{color:#a43e1b}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.steps li{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);transition:background .2s,opacity .2s}
+.steps li.ok{background:var(--moss-2);border-color:#c7dacb}
+.steps li.ok p{color:var(--ink-2);text-decoration:line-through;text-decoration-color:rgba(47,93,69,.4)}
+.check{width:30px;height:30px;flex:none;border-radius:10px;border:2px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.steps li.ok .check{background:var(--moss);border-color:var(--moss);color:#fff}
+.steps .sn{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.progress{height:10px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--moss),#5b8f6f);border-radius:99px;transition:width .4s ease}
+.actionbar{display:flex;gap:10px;flex-wrap:wrap}
+.actionbar .btn{flex:1;min-width:150px}
+.qtybox{background:var(--surface-2);border-radius:14px;padding:12px 14px;font-size:.92rem}
+
+/* Empty */
+.empty{text-align:center;padding:40px 18px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty svg{width:120px;height:120px}
+
+/* Profile */
+.avatar{width:64px;height:64px;border-radius:20px;background:var(--moss);color:#fff;font-family:var(--display);font-size:1.6rem;display:flex;align-items:center;justify-content:center}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-size:1.6rem}
+.stat span{font-size:.78rem;color:var(--muted)}
+.menu{display:grid;gap:8px}
+.menu button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;font-weight:600;min-height:56px}
+.menu button:hover{background:var(--surface-2)}
+.menu button .chev{margin-left:auto;color:var(--muted)}
+
+/* Impact */
+.big{font-family:var(--display);font-size:clamp(2rem,7vw,3rem);font-weight:650;line-height:1}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:88px 1fr 64px;align-items:center;gap:10px;font-size:.88rem}
+.bar .tr{height:12px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.bar .tr i{display:block;height:100%;border-radius:99px;background:var(--moss);transition:width .6s ease}
+.bar .v{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* Premium */
+.plans{display:grid;gap:16px}
+@media(min-width:760px){.plans{grid-template-columns:1fr 1fr}}
+.plan{padding:22px;display:flex;flex-direction:column;gap:14px}
+.plan.pro{background:#22302A;color:#F5F0E6;border-color:#22302A}
+.plan.pro .muted{color:#b9c2bb}
+.price{font-family:var(--display);font-size:2.2rem;font-weight:650}
+.price small{font-family:var(--font);font-size:.9rem;font-weight:500;opacity:.75}
+.feat{list-style:none;padding:0;margin:0;display:grid;gap:9px}
+.feat li{display:flex;gap:9px;align-items:flex-start;font-size:.94rem}
+.feat li svg{flex:none;margin-top:3px}
+.feat li.no{opacity:.55}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 16px;border-radius:14px;font-weight:500;font-size:.92rem;opacity:0;pointer-events:none;transition:all .25s ease;z-index:60;display:flex;gap:10px;align-items:center;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.toast button{background:none;border:0;color:var(--sun);font-weight:700;padding:4px}
+@media(min-width:900px){.toast{bottom:28px}}
+
+/* Modal */
+.modal{position:fixed;inset:0;z-index:70;display:none;align-items:flex-end;justify-content:center;background:rgba(20,28,24,.45);padding:0}
+.modal.show{display:flex;animation:fade .2s ease}
+@keyframes fade{from{opacity:0}}
+.sheet{background:var(--surface);width:100%;max-width:480px;border-radius:26px 26px 0 0;padding:26px 22px calc(22px + env(safe-area-inset-bottom));text-align:center;position:relative;overflow:hidden;animation:up .35s cubic-bezier(.2,.9,.3,1.2)}
+@media(min-width:620px){.modal{align-items:center}.sheet{border-radius:26px}}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(420px) rotate(540deg);opacity:0}}
+.medal{width:96px;height:96px;margin:0 auto 10px}
+.shuffle{animation:shuffle .7s ease}
+@keyframes shuffle{0%{transform:rotate(0)}25%{transform:rotate(-8deg) scale(1.05)}50%{transform:rotate(8deg) scale(1.08)}100%{transform:rotate(0)}}
+
+.footer{padding:30px 0 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);margin-top:30px}
+.linkbtn{background:none;border:0;color:var(--moss);font-weight:600;padding:0;text-decoration:underline;text-underline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <button class="back" id="backBtn" data-action="back" aria-label="Volver atrás">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="logo" data-go="inicio" aria-label="Segunda Vida, ir al inicio">
+      <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="10" fill="#2F5D45"/><path d="M9 21c0-6 5-11 14-11-1 8-6 12-12 12" fill="#E2ECE3"/><path d="M9 23c3-4 6-7 10-9" stroke="#2F5D45" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="23" cy="22" r="3" fill="#C8562E"/></svg>
+      Segunda Vida
+    </button>
+    <nav class="deskNav" aria-label="Principal">
+      <button data-go="inicio">Inicio</button>
+      <button data-go="explorar">Explorar</button>
+      <button data-go="crear">Crear</button>
+      <button data-go="guardados">Guardados</button>
+      <button class="xl" data-go="impacto">Impacto</button>
+      <button class="xl" data-go="como-funciona">Cómo funciona</button>
+      <button class="xl" data-go="premium">Premium</button>
+      <button data-go="perfil">Perfil</button>
+    </nav>
+    <span class="spacer"></span>
+    <span class="pill-demo" title="Prototipo con datos de ejemplo">Demo</span>
+    <button class="btn btn-ghost btn-sm surprise-top" data-action="surprise">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
+      Sorpréndeme
+    </button>
+  </div>
+</header>
+
+<main id="app" class="wrap" tabindex="-1"></main>
+
+<nav class="tabbar" aria-label="Navegación inferior">
+  <button data-go="inicio" data-tab="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Inicio</button>
+  <button data-go="explorar" data-tab="explorar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Explorar</button>
+  <button data-go="crear" data-tab="crear" class="tab-create"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>Crear</button>
+  <button data-go="guardados" data-tab="guardados"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>Guardados</button>
+  <button data-go="perfil" data-tab="perfil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg>Perfil</button>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= DATOS DE EJEMPLO ================= */
+const STYLES = [
+  {k:'minimalista',n:'Minimalista'},{k:'natural',n:'Natural'},{k:'colorido',n:'Colorido'},{k:'vintage',n:'Vintage'}
+];
+const DIFFS = ['Fácil','Media','Avanzada'];
+const USES = ['Decoración','Organización','Plantas','Cocina','Accesorios'];
+const TIMES = [{v:30,n:'30 min'},{v:60,n:'1 h'},{v:120,n:'2 h'},{v:240,n:'Tarde'}];
+const TIME_FILTERS = [{k:'corto',n:'≤ 30 min',t:m=>m<=30},{k:'medio',n:'30–90 min',t:m=>m>30&&m<=90},{k:'largo',n:'+90 min',t:m=>m>90}];
+
+const KIT = [
+  {k:'tijeras',n:'Tijeras'},{k:'pegamento',n:'Cola / pegamento'},{k:'silicona',n:'Pistola de silicona'},
+  {k:'pintura',n:'Pintura acrílica'},{k:'cuerda',n:'Cuerda o yute'},{k:'cuter',n:'Cúter y regla'},
+  {k:'lija',n:'Lija'},{k:'aguja',n:'Aguja e hilo'},{k:'taladro',n:'Taladro'},{k:'tierra',n:'Tierra y plantas'},
+  {k:'barniz',n:'Barniz'},{k:'luces',n:'Luces LED'}
+];
+const KITN = Object.fromEntries(KIT.map(x=>[x.k,x.n]));
+
+const MATERIALS = [
+  {k:'cristal',n:'Cristal',kw:['tarro','frasco','bote de cristal','cristal','vidrio','botella de cristal','botella de vino','vaso']},
+  {k:'carton',n:'Cartón',kw:['caja','carton','tubo de papel','caja de zapatos','caja de cereales']},
+  {k:'textil',n:'Textil',kw:['camiseta','ropa','tela','sabana','vaquero','pantalon','jersey','calcetin','tejano']},
+  {k:'plastico',n:'Plástico',kw:['botella de plastico','plastico','garrafa','envase','botella de agua']},
+  {k:'metal',n:'Metal',kw:['lata','latas','metal','aluminio','conserva']},
+  {k:'madera',n:'Madera',kw:['caja de fruta','pale','palet','madera','cajon','tabla']},
+  {k:'papel',n:'Papel',kw:['revista','periodico','papel','folleto','libro']},
+  {k:'corcho',n:'Corcho',kw:['corcho','tapon','tapones']}
+];
+const MATN = Object.fromEntries(MATERIALS.map(m=>[m.k,m.n]));
+
+const EXAMPLES = [
+  {obj:'Tarro de cristal',material:'cristal',qty:2,style:'natural'},
+  {obj:'Caja de cartón',material:'carton',qty:1,style:'minimalista'},
+  {obj:'Camiseta vieja',material:'textil',qty:3,style:'colorido'},
+  {obj:'Latas de conserva',material:'metal',qty:4,style:'vintage'},
+  {obj:'Botella de plástico',material:'plastico',qty:2,style:'natural'}
+];
+
+// m: materiales {n, k (clave del kit si aplica), extra (hay que conseguirlo), obj (es el objeto reutilizado)}
+const P = [
+ {id:'farolillo-tarro',t:'Farolillo de luz cálida',mat:'cristal',kw:['tarro','frasco','bote'],style:'natural',diff:'Fácil',min:20,use:'Decoración',needs:1,g:300,art:'lantern',
+  d:'Convierte un tarro en un farolillo para la mesa o el balcón. Con una guirnalda de LED a pilas y un asa de yute queda acogedor y sin cables.',
+  m:[{n:'Tarro de cristal limpio',obj:1},{n:'Guirnalda LED a pilas',k:'luces',extra:1},{n:'Cuerda de yute (1 m)',k:'cuerda'},{n:'Tijeras',k:'tijeras'}],
+  s:['Lava el tarro con agua caliente y retira la etiqueta; los restos de cola salen con un poco de aceite.','Enrolla la cuerda bajo el cuello del tarro dando tres vueltas y anúdala con fuerza.','Pasa otra tira de cuerda por debajo de las vueltas, de lado a lado, para formar un asa.','Introduce la guirnalda dejando el portapilas dentro, escondido en el fondo.','Enciende, cierra la tapa o déjalo abierto, y colócalo en una mesa o cuélgalo.']},
+ {id:'especiero-tarros',t:'Especiero a juego',mat:'cristal',kw:['tarro','frasco','bote'],style:'minimalista',diff:'Fácil',min:35,use:'Cocina',needs:4,g:1100,art:'spice',
+  d:'Unifica varios tarros pequeños con tapas pintadas y etiquetas de pizarra. Ordena la despensa y se ve limpio en una balda abierta.',
+  m:[{n:'Tarros pequeños (4 o más)',obj:1},{n:'Pintura acrílica para las tapas',k:'pintura'},{n:'Vinilo o pintura de pizarra',extra:1},{n:'Tiza líquida o rotulador blanco',extra:1}],
+  s:['Lava y seca bien los tarros y las tapas.','Lija un poco las tapas si brillan mucho, para que agarre la pintura.','Pinta las tapas del mismo color con dos capas finas; deja secar entre capas.','Recorta rectángulos de vinilo de pizarra y pégalos en el frente.','Escribe el nombre de cada especia y ordénalos en la balda.']},
+ {id:'terrario-tarro',t:'Mini terrario de suculentas',mat:'cristal',kw:['tarro','frasco','bote','vaso'],style:'natural',diff:'Media',min:45,use:'Plantas',needs:1,g:300,art:'terrarium',
+  d:'Un pequeño jardín dentro de un tarro de boca ancha. Las capas de grava y tierra se ven a través del cristal y casi no necesita cuidados.',
+  m:[{n:'Tarro de boca ancha',obj:1},{n:'Grava o piedrecitas',extra:1},{n:'Tierra para cactus',k:'tierra'},{n:'1 o 2 suculentas pequeñas',k:'tierra'},{n:'Carbón activo (opcional)',extra:1}],
+  s:['Pon 2–3 cm de grava en el fondo para el drenaje.','Si tienes carbón activo, añade una capa fina para evitar olores.','Añade tierra para cactus hasta un tercio del tarro.','Haz un hueco con una cuchara, planta las suculentas y presiona la tierra.','Decora con piedras, riega muy poco y déjalo destapado en un lugar con luz.']},
+ {id:'jarron-botella',t:'Jarrón efecto cerámica',mat:'cristal',kw:['botella','botella de vino','botella de cristal','vidrio'],style:'minimalista',diff:'Fácil',min:30,use:'Decoración',needs:1,g:450,art:'vase',
+  d:'Una botella de vino con acabado mate parece cerámica artesanal. Mezcla pintura con bicarbonato para darle textura.',
+  m:[{n:'Botella de cristal',obj:1},{n:'Pintura acrílica',k:'pintura'},{n:'Bicarbonato (2 cucharadas)',extra:1},{n:'Pincel o esponja',extra:1}],
+  s:['Limpia la botella y quita la etiqueta.','Mezcla la pintura con el bicarbonato hasta tener una pasta cremosa.','Aplica con esponja a toques para que quede textura irregular.','Deja secar una hora y da una segunda capa.','Añade unas ramas secas o espigas.']},
+ {id:'lampara-botella',t:'Lámpara de botella cortada',mat:'cristal',kw:['botella','botella de vino','botella de cristal'],style:'vintage',diff:'Avanzada',min:150,use:'Decoración',needs:1,g:450,art:'bottlelamp',premium:1,
+  d:'Corta el fondo de una botella y conviértela en una pantalla colgante para la cocina o la entrada.',
+  m:[{n:'Botella de cristal',obj:1},{n:'Cortador de botellas',extra:1},{n:'Kit de cable con portalámparas',extra:1},{n:'Lija al agua',k:'lija'}],
+  s:['Marca la línea de corte con el cortador girando la botella una sola vez.','Alterna agua caliente y fría sobre la línea hasta que el fondo se separe.','Lija el borde con lija al agua hasta que no corte.','Pasa el cable por el cuello y monta el portalámparas siguiendo sus instrucciones.','Pide a alguien con experiencia que revise la conexión antes de colgarla.']},
+ {id:'organizador-carton',t:'Organizador de cajones',mat:'carton',kw:['caja','caja de zapatos','caja de cereales','carton'],style:'minimalista',diff:'Fácil',min:40,use:'Organización',needs:1,g:250,art:'drawer',
+  d:'Divide una caja de zapatos en compartimentos para cables, maquillaje o material de escritorio. Forrada, parece comprada.',
+  m:[{n:'Caja de cartón firme',obj:1},{n:'Cúter y regla',k:'cuter'},{n:'Cola blanca',k:'pegamento'},{n:'Papel decorativo o kraft',extra:1}],
+  s:['Mide el interior de la caja y decide cuántos huecos quieres.','Corta tiras de cartón de la tapa con la misma altura que la caja.','Haz cortes hasta la mitad en las tiras para encajarlas en cruz.','Forra la caja y las tiras con papel y cola.','Encaja la rejilla dentro y deja secar antes de usarla.']},
+ {id:'revistero-carton',t:'Revistero forrado de tela',mat:'carton',kw:['caja','caja de cereales','carton'],style:'vintage',diff:'Fácil',min:30,use:'Organización',needs:1,g:200,art:'magfile',
+  d:'Una caja de cereales cortada en diagonal se convierte en revistero o archivador. Fórralo con restos de tela de estampado clásico.',
+  m:[{n:'Caja de cereales grande',obj:1},{n:'Cúter y regla',k:'cuter'},{n:'Retal de tela',extra:1},{n:'Cola blanca',k:'pegamento'}],
+  s:['Marca una diagonal desde la mitad del lateral hasta la esquina superior.','Corta por la línea en ambos lados y une con un corte recto delante.','Extiende cola por el exterior a zonas pequeñas.','Pega la tela, alisando las burbujas, y dobla los bordes hacia dentro.','Deja secar con peso dentro para que no se deforme.']},
+ {id:'lampara-carton',t:'Lámpara colgante por capas',mat:'carton',kw:['caja','carton'],style:'natural',diff:'Avanzada',min:180,use:'Decoración',needs:3,g:750,art:'lamp',premium:1,
+  d:'Aros de cartón apilados forman una pantalla escultórica que filtra la luz. Un proyecto de fin de semana con mucho efecto.',
+  m:[{n:'Cajas de cartón (3)',obj:1},{n:'Cúter y regla',k:'cuter'},{n:'Cola blanca',k:'pegamento'},{n:'Kit de cable y bombilla LED',extra:1},{n:'Plantilla imprimible (Premium)',extra:1}],
+  s:['Imprime la plantilla de aros y pásala al cartón.','Corta unos 30 aros de diámetro creciente.','Pega los aros en orden dejando separadores de 1 cm.','Pasa el cable por el aro superior y fija el portalámparas.','Usa solo bombilla LED, que no calienta.']},
+ {id:'bolsa-camiseta',t:'Bolsa tote sin costuras',mat:'textil',kw:['camiseta','ropa','tela'],style:'colorido',diff:'Fácil',min:15,use:'Accesorios',needs:1,g:150,art:'tote',
+  d:'Una camiseta se convierte en bolsa para la compra en un cuarto de hora, solo con tijeras y nudos.',
+  m:[{n:'Camiseta vieja',obj:1},{n:'Tijeras',k:'tijeras'},{n:'Tiza o rotulador',extra:0}],
+  s:['Corta las mangas siguiendo la costura: esas serán las asas.','Corta el cuello en forma de U para abrir la bolsa.','Haz cortes de 8 cm en el bajo, cada 2 cm, formando flecos.','Anuda los flecos de delante con los de detrás, por parejas.','Da la vuelta a la bolsa para esconder los nudos.']},
+ {id:'alfombra-camisetas',t:'Alfombrilla trenzada',mat:'textil',kw:['camiseta','ropa','tela','sabana'],style:'colorido',diff:'Media',min:120,use:'Decoración',needs:5,g:750,art:'rug',
+  d:'Tiras de camisetas trenzadas y cosidas en espiral. Ideal para el baño o junto a la cama, y cada una sale distinta.',
+  m:[{n:'Camisetas (5 o más)',obj:1},{n:'Tijeras',k:'tijeras'},{n:'Aguja e hilo grueso',k:'aguja'}],
+  s:['Corta las camisetas en tiras continuas de 3 cm.','Estira cada tira para que se enrolle sobre sí misma.','Trenza tres tiras; añade más cosiendo los extremos.','Enrolla la trenza en espiral sobre una mesa.','Cose cada vuelta a la anterior por debajo, sin apretar demasiado.']},
+ {id:'organizador-vaqueros',t:'Organizador colgante de vaqueros',mat:'textil',kw:['vaquero','pantalon','tejano'],style:'vintage',diff:'Media',min:60,use:'Organización',needs:1,g:600,art:'jeans',
+  d:'Aprovecha los bolsillos de unos vaqueros para un organizador de pared o de puerta. Útil para gafas, cargadores o llaves.',
+  m:[{n:'Pantalón vaquero',obj:1},{n:'Tijeras',k:'tijeras'},{n:'Aguja e hilo',k:'aguja'},{n:'Percha de madera',extra:1}],
+  s:['Corta una pernera para obtener un rectángulo de tela base.','Recorta los bolsillos traseros dejando 1 cm de margen.','Colócalos en la tela y cóselos por tres lados.','Dobla la parte superior sobre la barra de la percha y cósela.','Cuélgalo en la puerta o la pared.']},
+ {id:'macetero-botella',t:'Macetero de autorriego',mat:'plastico',kw:['botella de plastico','botella','botella de agua','envase'],style:'natural',diff:'Fácil',min:20,use:'Plantas',needs:1,g:40,art:'bottleplant',
+  d:'La botella se corta en dos: arriba la planta, abajo el agua. Un cordón lleva la humedad a la tierra poco a poco.',
+  m:[{n:'Botella de plástico de 1,5 L',obj:1},{n:'Cúter',k:'cuter'},{n:'Cordón de algodón (20 cm)',extra:1},{n:'Tierra y planta o semillas',k:'tierra'}],
+  s:['Corta la botella por la mitad.','Haz un agujero en el tapón y pasa el cordón.','Coloca la parte superior invertida dentro de la inferior.','Llena de tierra la parte de arriba y planta.','Añade agua abajo; el cordón regará solo.']},
+ {id:'portalapices-latas',t:'Portalápices de latas',mat:'metal',kw:['lata','latas','conserva'],style:'colorido',diff:'Fácil',min:25,use:'Organización',needs:3,g:180,art:'cans',
+  d:'Tres latas pintadas y unidas forman un organizador de escritorio alegre.',
+  m:[{n:'Latas limpias sin bordes cortantes (3)',obj:1},{n:'Pintura acrílica',k:'pintura'},{n:'Pistola de silicona',k:'silicona'},{n:'Lija',k:'lija'}],
+  s:['Revisa que el borde no corte; lija si hace falta.','Lija suave el exterior para que agarre la pintura.','Pinta cada lata de un color y deja secar.','Únelas en triángulo con silicona caliente.','Llénalas de lápices, tijeras y rotuladores.']},
+ {id:'macetas-latas',t:'Macetas colgantes de lata',mat:'metal',kw:['lata','latas','conserva'],style:'vintage',diff:'Media',min:50,use:'Plantas',needs:3,g:180,art:'canplants',
+  d:'Latas con aromáticas colgadas de una barra en la cocina. Con cuerda de yute tienen un aire rústico.',
+  m:[{n:'Latas (3)',obj:1},{n:'Taladro o clavo y martillo',k:'taladro'},{n:'Cuerda de yute',k:'cuerda'},{n:'Tierra y aromáticas',k:'tierra'},{n:'Barra o rama',extra:1}],
+  s:['Haz 2 agujeros laterales y 3 en el fondo para drenar.','Pasa la cuerda por los laterales y anúdala.','Rellena con tierra y planta las aromáticas.','Cuelga las latas de la barra a distintas alturas.','Riega poco y a menudo.']},
+ {id:'estanteria-caja-fruta',t:'Estantería de caja de fruta',mat:'madera',kw:['caja de fruta','madera','cajon','caja'],style:'natural',diff:'Media',min:90,use:'Organización',needs:1,g:1200,art:'shelf',
+  d:'Una caja de fruta lijada y barnizada se convierte en estante de pared o mesilla.',
+  m:[{n:'Caja de fruta de madera',obj:1},{n:'Lija',k:'lija'},{n:'Barniz al agua',k:'barniz'},{n:'Tornillos y tacos',extra:1},{n:'Taladro',k:'taladro'}],
+  s:['Revisa que no haya clavos sueltos y refuerza si hace falta.','Lija toda la superficie, primero grano grueso y luego fino.','Limpia el polvo y aplica dos capas de barniz.','Marca en la pared la posición y haz los agujeros.','Atornilla la caja y comprueba que está firme.']},
+ {id:'banco-pale',t:'Banco con almacenaje de palé',mat:'madera',kw:['pale','palet','madera'],style:'vintage',diff:'Avanzada',min:240,use:'Organización',needs:1,g:6000,art:'bench',premium:1,
+  d:'Un banco para la entrada con hueco para zapatos, hecho con un palé desmontado.',
+  m:[{n:'Palé (con sello HT)',obj:1},{n:'Sierra',extra:1},{n:'Lija',k:'lija'},{n:'Tornillos',extra:1},{n:'Barniz',k:'barniz'},{n:'Planos detallados (Premium)',extra:1}],
+  s:['Desmonta el palé con cuidado.','Corta las tablas según los planos.','Lija todas las piezas.','Monta la estructura y la balda inferior.','Barniza y deja secar 24 h.']},
+ {id:'cuenco-revistas',t:'Cuenco de papel enrollado',mat:'papel',kw:['revista','periodico','papel','folleto'],style:'colorido',diff:'Media',min:90,use:'Decoración',needs:1,g:300,art:'bowl',
+  d:'Tiras de revista enrolladas en espiral forman un cuenco resistente para llaves o fruta seca.',
+  m:[{n:'Revistas o folletos',obj:1},{n:'Cola blanca',k:'pegamento'},{n:'Palillo de brocheta',extra:0},{n:'Barniz al agua',k:'barniz'}],
+  s:['Corta páginas en tiras de 3 cm de ancho.','Enrolla cada tira en un palillo y pega el final.','Enrolla los tubos en espiral plana, pegando a medida que avanzas.','Presiona desde el centro para darle forma de cuenco.','Barniza por dentro y por fuera.']},
+ {id:'tablon-corchos',t:'Tablón de notas de corchos',mat:'corcho',kw:['corcho','tapon','tapones'],style:'natural',diff:'Media',min:60,use:'Organización',needs:40,g:160,art:'cork',
+  d:'Tapones cortados por la mitad y pegados dentro de un marco viejo: un tablón para notas y fotos.',
+  m:[{n:'Tapones de corcho (unos 40)',obj:1},{n:'Marco de cuadro viejo',extra:1},{n:'Cúter',k:'cuter'},{n:'Pistola de silicona',k:'silicona'}],
+  s:['Corta los tapones por la mitad a lo largo.','Quita el cristal del marco y deja solo el fondo.','Coloca los tapones en espiga para ver cómo quedan.','Pégalos uno a uno con silicona.','Cuélgalo y añade chinchetas.']}
+];
+const BY = Object.fromEntries(P.map(p=>[p.id,p]));
+
+/* ================= ILUSTRACIONES SVG ================= */
+const BG = {natural:'#E3EADF',minimalista:'#ECE7DD',colorido:'#F6DFCF',vintage:'#EADCC2'};
+function frame(p,inner){
+  const bg = BG[p.style]||'#E9DCC3';
+  return `<svg viewBox="0 0 320 200" role="img" aria-label="Ilustración de referencia: ${esc(p.t)}" preserveAspectRatio="xMidYMid slice"><rect width="320" height="200" fill="${bg}"/><circle cx="262" cy="40" r="58" fill="#fff" opacity=".35"/><rect y="160" width="320" height="40" fill="#000" opacity=".05"/>${inner}</svg>`;
+}
+const ART = {
+ lantern:()=>`<path d="M140 52c0-18 40-18 40 0" fill="none" stroke="#8b6a3e" stroke-width="3"/><rect x="128" y="62" width="64" height="12" rx="3" fill="#8b6a3e"/><rect x="122" y="72" width="76" height="92" rx="16" fill="#cfe3e4" opacity=".75" stroke="#9cbabb" stroke-width="2"/><g fill="#F4C25A">${[[140,95],[170,90],[155,112],[180,125],[138,132],[162,140],[150,150],[178,150]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.5"/><circle cx="${x}" cy="${y}" r="9" opacity=".25"/>`).join('')}</g><path d="M138 95q15 20 32-5t10 35-42 7 12 18 16 0" fill="none" stroke="#a88a52" stroke-width="1"/>`,
+ spice:()=>[0,1,2,3].map(i=>{const x=62+i*52;const c=['#2F5D45','#C8562E','#E8B04B','#8b6a3e'][i];return `<rect x="${x}" y="88" width="42" height="74" rx="9" fill="#d9e7e5" stroke="#a9c2c0" stroke-width="2"/><rect x="${x+3}" y="118" width="36" height="42" rx="6" fill="${c}" opacity=".85"/><rect x="${x-2}" y="76" width="46" height="14" rx="4" fill="#3b3b35"/><rect x="${x+7}" y="98" width="28" height="14" rx="3" fill="#2b2b28"/><path d="M${x+12} 105h18" stroke="#fff" stroke-width="2"/>`}).join(''),
+ terrarium:()=>`<rect x="104" y="44" width="112" height="120" rx="22" fill="#d6e7e8" opacity=".7" stroke="#9cbabb" stroke-width="2"/><path d="M106 140h108v6a18 18 0 01-18 18h-72a18 18 0 01-18-18z" fill="#a89b86"/><path d="M106 124h108v16H106z" fill="#5a4636"/><path d="M106 118h108v8H106z" fill="#2a2a28" opacity=".6"/><g fill="#5f9a6c"><ellipse cx="150" cy="106" rx="8" ry="18" transform="rotate(-25 150 106)"/><ellipse cx="164" cy="102" rx="8" ry="20"/><ellipse cx="178" cy="106" rx="8" ry="18" transform="rotate(25 178 106)"/></g><circle cx="128" cy="116" r="6" fill="#c9c2b4"/><circle cx="196" cy="117" r="5" fill="#e3ddd0"/>`,
+ vase:()=>`<path d="M146 40h28v28c22 10 30 30 30 50v34a12 12 0 01-12 12h-64a12 12 0 01-12-12v-34c0-20 8-40 30-50z" fill="#EFE9DE" stroke="#d6cdbd" stroke-width="2"/><path d="M128 120h64" stroke="#C8562E" stroke-width="5" opacity=".7"/><g stroke="#8b6a3e" stroke-width="2.5" fill="none"><path d="M160 42c-6-20-20-30-34-34"/><path d="M162 40c4-18 16-28 30-30"/></g><g fill="#c9a66b">${[[130,12],[140,18],[188,12],[178,20],[152,10]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="4" ry="7"/>`).join('')}</g>`,
+ bottlelamp:()=>`<path d="M160 0v48" stroke="#3b3b35" stroke-width="3"/><path d="M150 48h20v26c22 8 36 26 36 52v16H114v-16c0-26 14-44 36-52z" fill="#7aa58a" opacity=".85" stroke="#4d7a5e" stroke-width="2"/><circle cx="160" cy="146" r="14" fill="#F4C25A"/><circle cx="160" cy="150" r="40" fill="#F4C25A" opacity=".18"/>`,
+ drawer:()=>`<rect x="70" y="70" width="180" height="96" rx="10" fill="#c79a66"/><rect x="78" y="78" width="164" height="80" rx="6" fill="#e9cfa8"/><path d="M160 78v80M78 118h164" stroke="#c79a66" stroke-width="5"/><g><rect x="90" y="88" width="56" height="8" rx="4" fill="#2F5D45"/><rect x="90" y="100" width="40" height="8" rx="4" fill="#C8562E"/><circle cx="196" cy="98" r="10" fill="none" stroke="#3b3b35" stroke-width="4"/><circle cx="222" cy="100" r="6" fill="#E8B04B"/><rect x="92" y="128" width="8" height="24" rx="3" fill="#3b3b35"/><rect x="106" y="128" width="8" height="24" rx="3" fill="#C8562E"/><rect x="120" y="128" width="8" height="24" rx="3" fill="#2F5D45"/><rect x="178" y="130" width="46" height="18" rx="5" fill="#fff"/></g>`,
+ magfile:()=>`<path d="M110 166V86l40-30h40v110z" fill="#b65e44"/><path d="M110 166V86l40-30h40v110z" fill="url(#pt)" /><defs><pattern id="pt" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="2.5" fill="#f3d9c9"/></pattern></defs><rect x="196" y="56" width="16" height="110" fill="#2F5D45"/><rect x="214" y="70" width="12" height="96" fill="#E8B04B"/><rect x="152" y="40" width="34" height="50" fill="#fff" transform="rotate(6 169 65)"/>`,
+ lamp:()=>`<path d="M160 0v40" stroke="#3b3b35" stroke-width="3"/>${Array.from({length:10},(_,i)=>{const w=30+i*10-(i>6?(i-6)*16:0);return `<rect x="${160-w}" y="${40+i*10}" width="${w*2}" height="6" rx="3" fill="${i%2?'#c79a66':'#b5874f'}"/>`}).join('')}<circle cx="160" cy="150" r="46" fill="#F4C25A" opacity=".2"/>`,
+ tote:()=>`<path d="M120 60c0-26 16-26 16 0M184 60c0-26 16-26 16 0" fill="none" stroke="#C8562E" stroke-width="12" stroke-linecap="round"/><path d="M106 60h108l-6 96a10 10 0 01-10 10h-76a10 10 0 01-10-10z" fill="#C8562E"/><path d="M118 156h84" stroke="#a5421f" stroke-width="2" stroke-dasharray="4 5"/><path d="M140 96h40v28a6 6 0 01-6 6h-28a6 6 0 01-6-6z" fill="#F6DFCF"/><path d="M146 104h28" stroke="#C8562E" stroke-width="2" stroke-dasharray="3 3"/>`,
+ rug:()=>`<ellipse cx="160" cy="130" rx="120" ry="44" fill="#E8B04B"/>${[100,80,60,40,22].map((r,i)=>`<ellipse cx="160" cy="130" rx="${r}" ry="${r*.37}" fill="none" stroke="${['#C8562E','#2F5D45','#fff','#C8562E','#2F5D45'][i]}" stroke-width="8" stroke-dasharray="6 3"/>`).join('')}`,
+ jeans:()=>`<path d="M100 42h120" stroke="#8b6a3e" stroke-width="6" stroke-linecap="round"/><path d="M160 20l0 22" stroke="#3b3b35" stroke-width="3"/><rect x="104" y="46" width="112" height="124" rx="6" fill="#4a6d96"/><g fill="#3d5c82" stroke="#E8B04B" stroke-width="1.5" stroke-dasharray="3 3"><path d="M116 60h40v36l-20 8-20-8z"/><path d="M164 60h40v36l-20 8-20-8z"/><path d="M116 116h40v36l-20 8-20-8z"/><path d="M164 116h40v36l-20 8-20-8z"/></g><rect x="128" y="50" width="12" height="22" rx="4" fill="#C8562E"/><rect x="178" y="108" width="14" height="18" rx="3" fill="#2a2a28"/>`,
+ bottleplant:()=>`<path d="M118 110h84v50a8 8 0 01-8 8h-68a8 8 0 01-8-8z" fill="#cfe3e4" opacity=".85" stroke="#9cbabb" stroke-width="2"/><path d="M118 140h84v20a8 8 0 01-8 8h-68a8 8 0 01-8-8z" fill="#7fb1c9" opacity=".7"/><path d="M122 80h76l-22 50h-32z" fill="#d6e7e8" stroke="#9cbabb" stroke-width="2"/><path d="M126 86h68l-12 30h-44z" fill="#5a4636"/><path d="M160 130v26" stroke="#efe9de" stroke-width="3"/><g fill="#5f9a6c"><path d="M160 86c-4-24-22-30-32-30 4 16 16 26 32 30z"/><path d="M160 86c4-28 22-36 34-36-4 18-18 30-34 36z"/></g>`,
+ cans:()=>[[118,78,'#2F5D45'],[160,70,'#C8562E'],[202,82,'#E8B04B']].map(([x,y,c])=>`<rect x="${x-22}" y="${y+20}" width="44" height="${168-y-20}" rx="4" fill="${c}"/><rect x="${x-22}" y="${y+20}" width="44" height="6" fill="#000" opacity=".12"/><rect x="${x-6}" y="${y-12}" width="5" height="40" fill="#3b3b35" transform="rotate(-8 ${x} ${y})"/><rect x="${x+4}" y="${y-4}" width="5" height="34" fill="#efe9de" transform="rotate(10 ${x} ${y})"/>`).join(''),
+ canplants:()=>`<path d="M40 30h240" stroke="#8b6a3e" stroke-width="7" stroke-linecap="round"/>${[[100,96],[160,120],[220,90]].map(([x,y])=>`<path d="M${x-16} ${y}L${x} 30L${x+16} ${y}" stroke="#a88a52" stroke-width="2" fill="none"/><rect x="${x-20}" y="${y}" width="40" height="44" rx="4" fill="#b8b2a6"/><path d="M${x-20} ${y+14}h40" stroke="#9c958a" stroke-width="2"/><g fill="#5f9a6c"><ellipse cx="${x-8}" cy="${y-6}" rx="6" ry="11" transform="rotate(-20 ${x-8} ${y-6})"/><ellipse cx="${x+2}" cy="${y-10}" rx="6" ry="13"/><ellipse cx="${x+11}" cy="${y-5}" rx="6" ry="10" transform="rotate(25 ${x+11} ${y-5})"/></g>`).join('')}`,
+ shelf:()=>`<rect x="86" y="40" width="148" height="124" rx="4" fill="#d8b384"/><rect x="96" y="50" width="128" height="104" fill="#f1e3cc"/><path d="M96 102h128" stroke="#d8b384" stroke-width="8"/>${[0,1,2].map(i=>`<path d="M86 ${60+i*40}h148" stroke="#c49c6b" stroke-width="1" opacity=".6"/>`).join('')}<rect x="104" y="64" width="10" height="34" fill="#2F5D45"/><rect x="116" y="70" width="10" height="28" fill="#C8562E"/><rect x="128" y="66" width="8" height="32" fill="#E8B04B"/><circle cx="196" cy="86" r="12" fill="#5f9a6c"/><rect x="188" y="88" width="16" height="12" fill="#b65e44"/><rect x="108" y="124" width="40" height="26" rx="4" fill="#fff"/>`,
+ bench:()=>`<rect x="60" y="88" width="200" height="16" rx="3" fill="#c49c6b"/><rect x="60" y="80" width="200" height="10" rx="3" fill="#d8b384"/><rect x="70" y="104" width="14" height="62" fill="#b5874f"/><rect x="236" y="104" width="14" height="62" fill="#b5874f"/><rect x="84" y="138" width="152" height="10" fill="#c49c6b"/><path d="M104 138c0-10 18-10 22 0zM150 138c0-10 18-10 22 0zM190 138c0-10 18-10 22 0z" fill="#3b3b35"/><rect x="120" y="66" width="60" height="16" rx="8" fill="#2F5D45"/>`,
+ bowl:()=>`<path d="M80 100h160c0 40-36 66-80 66s-80-26-80-66z" fill="#E8B04B"/>${[0,1,2,3,4,5].map(i=>`<path d="M${84+i*6} ${104+i*10}h${152-i*12}" stroke="${['#C8562E','#2F5D45','#fff','#C8562E','#7fb1c9','#2F5D45'][i]}" stroke-width="7" stroke-linecap="round"/>`).join('')}<ellipse cx="160" cy="100" rx="80" ry="12" fill="#f3d38d"/><circle cx="142" cy="96" r="8" fill="#8b6a3e"/><circle cx="168" cy="94" r="7" fill="#b65e44"/>`,
+ cork:()=>`<rect x="80" y="36" width="160" height="128" rx="6" fill="#3b3b35"/><rect x="90" y="46" width="140" height="108" fill="#c9a06c"/>${Array.from({length:6},(_,r)=>Array.from({length:5},(_,c)=>`<rect x="${94+c*27}" y="${50+r*17.5}" width="24" height="14" rx="6" fill="${(r+c)%2?'#d9b281':'#b98f5c'}" transform="rotate(${(r+c)%2?18:-18} ${106+c*27} ${57+r*17.5})"/>`).join('')).join('')}<rect x="108" y="62" width="40" height="30" fill="#fff" transform="rotate(-6 128 77)"/><circle cx="128" cy="62" r="4" fill="#C8562E"/><rect x="170" y="98" width="38" height="38" fill="#F4C25A" transform="rotate(5 189 117)"/><circle cx="189" cy="99" r="4" fill="#2F5D45"/>`
+};
+function artFor(p){return frame(p,(ART[p.art]||ART.lantern)())}
+
+const CAT_ICONS = {
+ cristal:`<svg viewBox="0 0 40 40" fill="none" stroke="#2F5D45" stroke-width="2.2"><rect x="11" y="6" width="18" height="6" rx="2"/><rect x="9" y="12" width="22" height="22" rx="6"/></svg>`,
+ carton:`<svg viewBox="0 0 40 40" fill="none" stroke="#2F5D45" stroke-width="2.2" stroke-linejoin="round"><path d="M6 14l14-7 14 7v14l-14 7-14-7z"/><path d="M6 14l14 7 14-7M20 21v14"/></svg>`,
+ textil:`<svg viewBox="0 0 40 40" fill="none" stroke="#2F5D45" stroke-width="2.2" stroke-linejoin="round"><path d="M14 6l-8 5 3 7 4-2v18h14V16l4 2 3-7-8-5c-1 3-3 4-6 4s-5-1-6-4z"/></svg>`,
+ plastico:`<svg viewBox="0 0 40 40" fill="none" stroke="#2F5D45" stroke-width="2.2"><rect x="16" y="4" width="8" height="5" rx="1"/><path d="M16 9h8v4c4 2 5 5 5 8v12a3 3 0 01-3 3H14a3 3 0 01-3-3V21c0-3 1-6 5-8z"/></svg>`,
+ metal:`<svg viewBox="0 0 40 40" fill="none" stroke="#2F5D45" stroke-width="2.2"><ellipse cx="20" cy="9" rx="10" ry="3"/><path d="M10 9v22c0 2 4 3 10 3s10-1 10-3V9"/><path d="M10 16c0 2 4 3 10 3s10-1 10-3"/></svg>`,
+ madera:`<svg viewBox="0 0 40 40" fill="none" stroke="#2F5D45" stroke-width="2.2"><rect x="5" y="10" width="30" height="22" rx="2"/><path d="M5 17h30M5 25h30"/></svg>`,
+ papel:`<svg viewBox="0 0 40 40" fill="none" stroke="#2F5D45" stroke-width="2.2" stroke-linejoin="round"><path d="M10 5h14l7 7v23H10z"/><path d="M24 5v7h7M14 20h12M14 26h12"/></svg>`,
+ corcho:`<svg viewBox="0 0 40 40" fill="none" stroke="#2F5D45" stroke-width="2.2"><path d="M13 8h14l-2 26H15z"/><circle cx="19" cy="16" r="1.3" fill="#2F5D45"/><circle cx="22" cy="24" r="1.3" fill="#2F5D45"/></svg>`
+};
+
+/* ================= ICONOS ================= */
+const I = {
+ heart:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>`,
+ clock:`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
+ level:`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20v-5M12 20V9M19 20V4"/></svg>`,
+ check:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>`,
+ plus:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+ info:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>`,
+ lock:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>`,
+ dice:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>`,
+ chev:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>`,
+ leaf:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-9 6-14 15-14-1 9-6 14-14 14"/><path d="M5 19c3-4 6-7 9-9"/></svg>`,
+ spark:`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg>`,
+ crown:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/></svg>`,
+ x:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`
+};
+
+/* ================= ESTADO ================= */
+const DEFAULT = {
+  profile:{name:'Invitado',style:'natural',time:60,kit:['tijeras','pegamento','cuerda']},
+  favs:[], done:[], steps:{}, premium:false,
+  query:null,
+  form:{obj:'',material:'auto',qty:1,style:null,time:null,kit:null},
+  rfilters:{style:'',diff:'',time:'',use:''},
+  efilters:{style:'',diff:'',time:'',use:''},
+  explore:{q:'',cat:''}
+};
+let S;
+try{ S = Object.assign(structuredClone(DEFAULT), JSON.parse(localStorage.getItem('segundaVida')||'{}')); }catch(e){ S = structuredClone(DEFAULT); }
+function save(){ try{ localStorage.setItem('segundaVida', JSON.stringify({profile:S.profile,favs:S.favs,done:S.done,steps:S.steps,premium:S.premium})); }catch(e){} }
+
+let route = 'inicio', stack = [];
+const app = document.getElementById('app');
+
+/* ================= UTILIDADES ================= */
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim()}
+function fmtMin(m){return m<60?`${m} min`:(m%60?`${Math.floor(m/60)} h ${m%60} min`:`${m/60} h`)}
+function fmtKg(g){return g>=1000?`${(g/1000).toLocaleString('es-ES',{maximumFractionDigits:1})} kg`:`${g} g`}
+function styleName(k){return (STYLES.find(s=>s.k===k)||{}).n||k}
+function detectMaterial(text){
+  const t = norm(text); let best=null, bl=0;
+  for(const m of MATERIALS) for(const kw of m.kw){ if(t.includes(kw) && kw.length>bl){best=m.k;bl=kw.length;} }
+  return best;
+}
+function locked(p){return p.premium && !S.premium}
+function extrasMissing(p,kit){return p.m.filter(x=>!x.obj && (x.extra || (x.k && !kit.includes(x.k))))}
+
+/* ================= MOTOR DE COINCIDENCIAS (simulado, por reglas) ================= */
+function match(q){
+  const mat = q.material==='auto' ? detectMaterial(q.obj) : q.material;
+  const t = norm(q.obj);
+  const list = [];
+  for(const p of P){
+    const kwHit = p.kw.some(k=>t.includes(norm(k)));
+    if(!(mat ? p.mat===mat : kwHit)) continue;
+    let score = 0; const reasons=[];
+    if(kwHit){score+=4;}
+    if(p.style===q.style){score+=3;reasons.push('Tu estilo');}
+    if(p.style===S.profile.style && p.style!==q.style) score+=1;
+    if(p.min<=q.time){score+=2;reasons.push('Cabe en tu tiempo');}
+    const miss = extrasMissing(p,q.kit).length; score -= miss*0.6;
+    if(miss===0) reasons.push('Tienes todo');
+    if(q.qty>=p.needs){score+=1;}
+    if(locked(p)) score-=1.5;
+    list.push({p,score,reasons});
+  }
+  list.sort((a,b)=>b.score-a.score);
+  return {mat,list};
+}
+
+/* ================= ROUTER ================= */
+const TABS = ['inicio','explorar','crear','guardados','perfil'];
+function go(r,opts={}){
+  if(r===route && !opts.force){render();return;}
+  if(!opts.replace) stack.push(route);
+  route=r;
+  try{ history.replaceState(null,'','#'+r); }catch(e){}
+  render(); window.scrollTo({top:0,behavior:'instant'in window?'instant':'auto'});
+}
+function back(){
+  const prev = stack.pop();
+  route = prev || 'inicio';
+  try{ history.replaceState(null,'','#'+route); }catch(e){}
+  render(); window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&h!==route){stack.push(route);route=h;render();}});
+
+function render(){
+  let html='';
+  if(route.startsWith('proyecto-')){ const p=BY[route.slice(9)]; html = p?viewDetail(p):viewNotFound(); }
+  else switch(route){
+    case 'inicio': html=viewHome();break;
+    case 'crear': html=viewCreate();break;
+    case 'cargando': html=viewLoading();break;
+    case 'resultados': html=viewResults();break;
+    case 'explorar': html=viewExplore();break;
+    case 'guardados': html=viewSaved();break;
+    case 'perfil': html=viewProfile();break;
+    case 'impacto': html=viewImpact();break;
+    case 'premium': html=viewPremium();break;
+    case 'como-funciona': html=viewHow();break;
+    default: html=viewNotFound();
+  }
+  app.innerHTML = `<div class="view">${html}</div>${footer()}`;
+  document.getElementById('backBtn').classList.toggle('show', route!=='inicio');
+  const tabKey = route.startsWith('proyecto-')||route==='resultados'||route==='cargando' ? (route==='resultados'||route==='cargando'?'crear':null) : route;
+  document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===tabKey));
+  document.querySelectorAll('.deskNav button').forEach(b=>b.classList.toggle('on',b.dataset.go===tabKey));
+  document.title = 'Segunda Vida · ' + ({inicio:'Inicio',crear:'Crear',resultados:'Ideas',explorar:'Explorar',guardados:'Guardados',perfil:'Perfil',impacto:'Impacto',premium:'Planes','como-funciona':'Cómo funciona'}[route] || (route.startsWith('proyecto-')?BY[route.slice(9)]?.t:'Demo'));
+  if(route==='explorar'){ const i=document.getElementById('searchInput'); if(i && S._focusSearch){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); S._focusSearch=false; } }
+}
+
+function footer(){
+  return `<footer class="footer"><div class="row" style="justify-content:space-between"><span>Segunda Vida · prototipo de demostración con datos de ejemplo.</span><span class="row"><button class="linkbtn" data-go="como-funciona">Cómo funciona</button><button class="linkbtn" data-go="impacto">Impacto</button><button class="linkbtn" data-go="premium">Planes</button></span></div></footer>`;
+}
+
+/* ================= COMPONENTES ================= */
+function card(p,extra){
+  const fav = S.favs.includes(p.id), done=S.done.includes(p.id), lk=locked(p);
+  const missing = extrasMissing(p, S.query?S.query.kit:S.profile.kit);
+  const needsExtra = p.m.some(x=>x.extra);
+  return `<article class="card pcard">
+    <div style="position:relative">
+      <button class="thumb" data-open="${p.id}" aria-label="Ver ${esc(p.t)}">${artFor(p)}${lk?`<span class="lockveil">${I.lock} Idea Premium</span>`:''}</button>
+      <span class="tagline">${p.premium?`<span class="badge prem">${I.crown} Premium</span>`:''}${done?`<span class="badge done">${I.check} Hecho</span>`:''}</span>
+      <button class="fav ${fav?'on':''}" data-fav="${p.id}" aria-pressed="${fav}" aria-label="${fav?'Quitar de':'Guardar en'} favoritos">${I.heart}</button>
+    </div>
+    <div class="body">
+      <div class="badges"><span class="badge">${MATN[p.mat]}</span><span class="badge">${styleName(p.style)}</span><span class="badge">${p.use}</span></div>
+      <button class="open" data-open="${p.id}"><h3>${esc(p.t)}</h3></button>
+      <p class="muted small">${esc(p.d)}</p>
+      <div class="meta"><span>${I.clock} ${fmtMin(p.min)}</span><span>${I.level} ${p.diff}</span></div>
+      ${needsExtra?`<div><span class="badge extra">${I.plus} Necesita materiales extra${missing.length?` · ${missing.length}`:''}</span></div>`:`<div><span class="badge ok">${I.check} Sin compras extra</span></div>`}
+      ${extra||''}
+    </div>
+  </article>`;
+}
+function filterBar(scope){
+  const f = S[scope];
+  const row=(lab,key,opts)=>`<div class="frow" role="group" aria-label="Filtrar por ${lab.toLowerCase()}"><span class="lab">${lab}</span><button class="chip ${!f[key]?'on':''}" data-filter="${scope}" data-key="${key}" data-val="">Todos</button>${opts.map(o=>`<button class="chip ${f[key]===o.k?'on':''}" data-filter="${scope}" data-key="${key}" data-val="${o.k}" aria-pressed="${f[key]===o.k}">${o.n}</button>`).join('')}</div>`;
+  return `<div class="filters">
+    ${row('Estilo','style',STYLES)}
+    ${row('Dificultad','diff',DIFFS.map(d=>({k:d,n:d})))}
+    ${row('Tiempo','time',TIME_FILTERS)}
+    ${row('Uso','use',USES.map(u=>({k:u,n:u})))}
+  </div>`;
+}
+function applyFilters(items,f){
+  return items.filter(p=>(!f.style||p.style===f.style)&&(!f.diff||p.diff===f.diff)&&(!f.use||p.use===f.use)&&(!f.time||TIME_FILTERS.find(t=>t.k===f.time).t(p.min)));
+}
+function activeCount(f){return Object.values(f).filter(Boolean).length}
+function emptyArt(){return `<svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56" fill="#EFE8DA"/><rect x="40" y="34" width="40" height="10" rx="3" fill="#c9bea6"/><rect x="36" y="44" width="48" height="50" rx="12" fill="#fff" stroke="#c9bea6" stroke-width="3"/><path d="M50 70c6-8 14-8 20 0" stroke="#2F5D45" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M60 70v-14" stroke="#2F5D45" stroke-width="3" stroke-linecap="round"/><path d="M60 58c-4-6-10-6-12-6 1 5 6 8 12 6zM60 58c4-6 10-7 12-7-1 5-6 9-12 7z" fill="#5f9a6c"/></svg>`}
+
+/* ================= VISTAS ================= */
+function viewHome(){
+  const pick = P.filter(p=>!p.premium).slice(0).sort((a,b)=>(a.style===S.profile.style?-1:0)-(b.style===S.profile.style?-1:0)).slice(0,3);
+  return `
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">Reutiliza · crea · disfruta</p>
+        <h1 style="margin-top:10px">Dale una <em>segunda vida</em> a lo que ibas a tirar</h1>
+        <p class="lead" style="margin-top:14px">Dinos qué objeto tienes y de qué material es. Te proponemos proyectos prácticos y bonitos para tu casa, con pasos claros y la lista de lo que necesitas.</p>
+        <div class="hero-cta">
+          <button class="btn btn-primary" data-go="crear">Empezar ahora ${I.chev}</button>
+          <button class="btn btn-ghost" data-action="surprise">${I.dice} Sorpréndeme</button>
+        </div>
+        <p class="small muted" style="margin-top:18px;font-weight:600">O prueba con un ejemplo:</p>
+        <div class="examples">${EXAMPLES.map((e,i)=>`<button class="chip ex" data-example="${i}">${esc(e.obj)}</button>`).join('')}</div>
+      </div>
+      <div class="hero-art">${heroArt()}</div>
+    </div>
+  </section>
+  <section>
+    <div class="row" style="justify-content:space-between;margin-bottom:14px"><h2>¿Qué tienes a mano?</h2><button class="linkbtn" data-go="explorar">Ver todo</button></div>
+    <div class="cats">${MATERIALS.map(m=>`<button class="cat" data-cat="${m.k}">${CAT_ICONS[m.k]}${m.n}</button>`).join('')}</div>
+  </section>
+  <section>
+    <div class="row" style="justify-content:space-between;margin-bottom:14px"><h2>Ideas para tu estilo ${esc(styleName(S.profile.style).toLowerCase())}</h2><button class="linkbtn" data-go="perfil">Cambiar estilo</button></div>
+    <div class="grid g3">${pick.map(p=>card(p)).join('')}</div>
+  </section>
+  <section>
+    <h2 style="margin-bottom:14px">Así funciona</h2>
+    <div class="steps3">
+      ${[['Cuéntanos','Escribe el objeto, su material, cuántos tienes y cuánto tiempo quieres dedicarle.'],['Elige una idea','Compara proyectos por estilo, dificultad, tiempo y uso. Guarda los que te gusten.'],['Hazlo paso a paso','Sigue las instrucciones, marca lo que completas y celebra el resultado.']].map((s,i)=>`<div class="card pad step3"><div class="num">${i+1}</div><h3>${s[0]}</h3><p class="muted small" style="margin-top:6px">${s[1]}</p></div>`).join('')}
+    </div>
+    <div class="row" style="margin-top:14px"><button class="btn btn-ghost btn-sm" data-go="como-funciona">Más sobre cómo funciona</button></div>
+  </section>
+  <section>
+    <div class="card pad" style="background:var(--moss);color:#F5F0E6;border-color:var(--moss)">
+      <div class="row" style="gap:16px;align-items:flex-start">
+        <div style="flex:1;min-width:240px">
+          <p class="eyebrow" style="color:#f2c3ad">Propósito</p>
+          <h2 style="margin-top:6px">Cada objeto reutilizado es uno que no se tira</h2>
+          <p style="margin-top:10px;color:#d7e2da">Antes de reciclar, reutiliza. Alargar la vida de lo que ya tienes ahorra materiales, energía y dinero, y da a tu casa piezas con historia.</p>
+        </div>
+        <div class="row"><button class="btn" style="background:#F5F0E6;color:var(--moss)" data-go="impacto">Ver impacto</button></div>
+      </div>
+    </div>
+  </section>`;
+}
+function heroArt(){
+  return `<svg viewBox="0 0 400 320" aria-hidden="true"><rect width="400" height="320" fill="#E9DCC3"/><circle cx="310" cy="70" r="90" fill="#F3E9D6"/><rect y="236" width="400" height="84" fill="#DCCBAA"/><rect x="40" y="226" width="320" height="12" rx="4" fill="#B88C5A"/>
+  <g transform="translate(66 116)"><path d="M14 0c0-20 40-20 40 0" fill="none" stroke="#8b6a3e" stroke-width="3"/><rect x="4" y="6" width="60" height="12" rx="3" fill="#8b6a3e"/><rect y="16" width="68" height="94" rx="16" fill="#d6e7e8" stroke="#9cbabb" stroke-width="2"/><g fill="#F4C25A"><circle cx="20" cy="44" r="4"/><circle cx="46" cy="38" r="4"/><circle cx="34" cy="64" r="4"/><circle cx="52" cy="80" r="4"/><circle cx="18" cy="88" r="4"/></g><circle cx="34" cy="60" r="44" fill="#F4C25A" opacity=".14"/></g>
+  <g transform="translate(160 96)"><rect x="0" y="40" width="84" height="90" rx="6" fill="#C8562E"/><path d="M14 40c0-34 20-34 20 0M50 40c0-34 20-34 20 0" fill="none" stroke="#C8562E" stroke-width="10" stroke-linecap="round"/><rect x="24" y="72" width="36" height="30" rx="6" fill="#F6DFCF"/></g>
+  <g transform="translate(264 120)"><rect x="0" y="40" width="74" height="66" rx="6" fill="#b8b2a6"/><path d="M0 56h74" stroke="#9c958a" stroke-width="3"/><g fill="#5f9a6c"><ellipse cx="22" cy="24" rx="10" ry="22" transform="rotate(-20 22 24)"/><ellipse cx="38" cy="16" rx="10" ry="26"/><ellipse cx="54" cy="26" rx="10" ry="20" transform="rotate(22 54 26)"/></g></g>
+  <path d="M200 30c-30 0-54 18-60 44" stroke="#2F5D45" stroke-width="2.5" fill="none" stroke-dasharray="5 6"/><path d="M134 66l6 10 8-8" stroke="#2F5D45" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
+}
+
+function viewCreate(){
+  const f=S.form;
+  const style=f.style||S.profile.style, time=f.time||S.profile.time, kit=f.kit||S.profile.kit;
+  const det = f.material==='auto' ? detectMaterial(f.obj) : null;
+  return `<section>
+  <p class="eyebrow">Nuevo proyecto</p>
+  <h1 style="margin:8px 0 6px;font-size:clamp(1.7rem,5vw,2.4rem)">¿Qué quieres reutilizar?</h1>
+  <p class="lead">Cuanto más nos cuentes, mejor encajarán las ideas.</p>
+  <div class="formwrap" style="margin-top:20px">
+  <form class="form card pad" id="createForm" novalidate>
+    <div class="field">
+      <label class="lbl" for="obj">Objeto</label>
+      <input class="input" id="obj" name="obj" list="objList" autocomplete="off" placeholder="Ej.: tarro de cristal, caja de cartón…" value="${esc(f.obj)}" aria-describedby="objHint objErr">
+      <datalist id="objList">${['Tarro de cristal','Botella de vino','Caja de cartón','Caja de zapatos','Camiseta vieja','Pantalón vaquero','Botella de plástico','Latas de conserva','Caja de fruta','Revistas','Tapones de corcho'].map(o=>`<option value="${o}">`).join('')}</datalist>
+      <p class="hint" id="objHint">${det?`Material detectado: <b>${MATN[det]}</b>`:'Escribe el objeto y detectaremos el material, o elígelo abajo.'}</p>
+      <p class="errmsg" id="objErr" hidden>Escribe qué objeto tienes para poder proponerte ideas.</p>
+    </div>
+    <div class="two">
+      <div class="field">
+        <label class="lbl" for="material">Material</label>
+        <select class="select" id="material" name="material">
+          <option value="auto" ${f.material==='auto'?'selected':''}>Detectar automáticamente</option>
+          ${MATERIALS.map(m=>`<option value="${m.k}" ${f.material===m.k?'selected':''}>${m.n}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <span class="lbl" id="qtyLbl">¿Cuántos tienes?</span>
+        <div class="stepper" role="group" aria-labelledby="qtyLbl"><button type="button" data-qty="-1" aria-label="Uno menos">−</button><output id="qtyOut" aria-live="polite">${f.qty}</output><button type="button" data-qty="1" aria-label="Uno más">+</button></div>
+      </div>
+    </div>
+    <div class="field">
+      <span class="lbl">Estilo que te gusta</span>
+      <div class="checks" role="radiogroup" aria-label="Estilo">${STYLES.map(s=>`<button type="button" class="chip ${style===s.k?'on':''}" role="radio" aria-checked="${style===s.k}" data-fstyle="${s.k}">${s.n}</button>`).join('')}</div>
+    </div>
+    <div class="field">
+      <span class="lbl">Tiempo disponible</span>
+      <div class="seg" role="radiogroup" aria-label="Tiempo disponible">${TIMES.map(t=>`<button type="button" class="${time===t.v?'on':''}" role="radio" aria-checked="${time===t.v}" data-ftime="${t.v}">${t.n}</button>`).join('')}</div>
+    </div>
+    <div class="field">
+      <span class="lbl">Materiales y herramientas que ya tienes</span>
+      <div class="checks">${KIT.map(k=>`<button type="button" class="chip ${kit.includes(k.k)?'on':''}" aria-pressed="${kit.includes(k.k)}" data-fkit="${k.k}">${kit.includes(k.k)?I.check:I.plus}${k.n}</button>`).join('')}</div>
+      <p class="hint">Así marcamos qué tendrías que conseguir para cada idea.</p>
+    </div>
+    <div class="row" style="margin-top:4px"><button type="submit" class="btn btn-primary" style="flex:1">${I.spark} Ver ideas</button><button type="button" class="btn btn-ghost" data-action="clearForm">Limpiar</button></div>
+  </form>
+  <aside class="formside stack">
+    <div class="card pad">
+      <h3>¿Sin inspiración?</h3>
+      <p class="muted small" style="margin:6px 0 12px">Rellena el formulario con un ejemplo y pruébalo.</p>
+      <div class="checks">${EXAMPLES.map((e,i)=>`<button type="button" class="chip ex" data-fillexample="${i}">${esc(e.obj)}</button>`).join('')}</div>
+    </div>
+    <div class="notice">${I.info}<span>Demo: las ideas salen de un catálogo de ejemplo y se ordenan con reglas sencillas (material, estilo, tiempo y materiales disponibles).</span></div>
+  </aside>
+  </div>
+  </section>`;
+}
+
+function viewLoading(){
+  return `<div class="loader" aria-live="polite"><svg class="spin" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="#E2D9C7" stroke-width="6"/><circle cx="32" cy="32" r="26" fill="none" stroke="#2F5D45" stroke-width="6" stroke-linecap="round" stroke-dasharray="50 200"/></svg><h2>Buscando ideas…</h2><p class="muted">Comparando tu ${esc(S.query?S.query.obj.toLowerCase():'objeto')} con el catálogo de ejemplo</p></div>`;
+}
+
+function viewResults(){
+  if(!S.query) return `<div class="empty">${emptyArt()}<h2>Aún no has buscado nada</h2><p class="muted">Cuéntanos qué objeto tienes para ver ideas.</p><button class="btn btn-primary" data-go="crear">Empezar</button></div>`;
+  const q=S.query, {mat,list}=match(q);
+  const filtered = list.filter(x=>applyFilters([x.p],S.rfilters).length);
+  const head = `<section style="padding-bottom:0">
+    <p class="eyebrow">Ideas para ti</p>
+    <h1 style="margin:8px 0 8px;font-size:clamp(1.6rem,5vw,2.3rem)">${esc(q.obj)}</h1>
+    <div class="badges">${mat?`<span class="badge ok">${MATN[mat]}</span>`:''}<span class="badge">${q.qty} ${q.qty===1?'unidad':'unidades'}</span><span class="badge">${styleName(q.style)}</span><span class="badge">Hasta ${fmtMin(q.time)}</span><button class="badge" style="border:0;cursor:pointer;background:var(--accent-soft);color:#8a3415" data-go="crear">Editar búsqueda</button></div>
+  </section>`;
+  if(!list.length) return head+`<div class="empty">${emptyArt()}<h2>No encontramos ideas para eso… todavía</h2><p class="muted" style="max-width:44ch">El catálogo de la demo es pequeño. Prueba eligiendo el material a mano o con uno de estos objetos:</p><div class="examples" style="justify-content:center">${EXAMPLES.map((e,i)=>`<button class="chip ex" data-example="${i}">${esc(e.obj)}</button>`).join('')}</div></div>`;
+  return head + `<section style="padding-top:8px">
+    ${filterBar('rfilters')}
+    <div class="resbar"><span class="muted small"><b style="color:var(--ink)">${filtered.length}</b> de ${list.length} ideas${activeCount(S.rfilters)?' con los filtros activos':''}</span>${activeCount(S.rfilters)?`<button class="linkbtn small" data-clearfilters="rfilters">Quitar filtros</button>`:''}</div>
+    ${filtered.length?`<div class="grid g3">${filtered.map(({p,reasons})=>card(p, `${reasons.length?`<div class="reasons">${reasons.map(r=>`<span class="reason">${I.check} ${r}</span>`).join('')}</div>`:''}<p class="small" style="color:${q.qty>=p.needs?'var(--moss)':'#a43e1b'};font-weight:600">${q.qty>=p.needs?(p.needs>1?`Te llega: necesitas ${p.needs}`:(Math.floor(q.qty/p.needs)>1?`Te da para ${Math.floor(q.qty/p.needs)}`:'Te llega con 1')):`Necesitas ${p.needs}, tienes ${q.qty}`}</p>`)).join('')}</div>`
+    :`<div class="empty">${emptyArt()}<h3>Ningún proyecto cumple estos filtros</h3><button class="btn btn-ghost" data-clearfilters="rfilters">Quitar filtros</button></div>`}
+  </section>`;
+}
+
+function viewExplore(){
+  const e=S.explore, q=norm(e.q);
+  let items = P.filter(p=>(!e.cat||p.mat===e.cat)&&(!q||norm(p.t+' '+p.d+' '+p.kw.join(' ')+' '+MATN[p.mat]+' '+p.use).includes(q)));
+  items = applyFilters(items,S.efilters);
+  return `<section>
+    <p class="eyebrow">Explorar</p>
+    <h1 style="margin:8px 0 14px;font-size:clamp(1.7rem,5vw,2.4rem)">Busca por objeto o material</h1>
+    <div style="position:relative"><input class="input" id="searchInput" type="search" placeholder="Buscar: botella, lámpara, plantas…" value="${esc(e.q)}" aria-label="Buscar proyectos" style="padding-left:44px"><span style="position:absolute;left:14px;top:14px;color:var(--muted)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span></div>
+    <h3 style="margin:20px 0 10px">Objetos frecuentes</h3>
+    <div class="cats">${MATERIALS.map(m=>`<button class="cat ${e.cat===m.k?'on':''}" data-cat="${m.k}" aria-pressed="${e.cat===m.k}">${CAT_ICONS[m.k]}${m.n}</button>`).join('')}</div>
+    ${filterBar('efilters')}
+    <div class="resbar"><span class="muted small"><b style="color:var(--ink)">${items.length}</b> proyectos</span>${(e.q||e.cat||activeCount(S.efilters))?`<button class="linkbtn small" data-action="clearExplore">Limpiar búsqueda y filtros</button>`:''}</div>
+    ${items.length?`<div class="grid g3">${items.map(p=>card(p)).join('')}</div>`:`<div class="empty">${emptyArt()}<h3>Sin resultados para “${esc(e.q)}”</h3><p class="muted">Prueba con otra palabra o crea una búsqueda guiada.</p><div class="row" style="justify-content:center"><button class="btn btn-ghost" data-action="clearExplore">Limpiar</button><button class="btn btn-primary" data-go="crear">Búsqueda guiada</button></div></div>`}
+  </section>`;
+}
+
+function viewDetail(p){
+  const fav=S.favs.includes(p.id), done=S.done.includes(p.id);
+  if(locked(p)) return `<section><div class="detail-grid"><div class="detail-art">${artFor(p)}<span class="lockveil" style="font-size:1rem">${I.lock} Contenido Premium</span></div><div class="stack"><span class="badge prem">${I.crown} Premium</span><h1 style="font-size:clamp(1.6rem,5vw,2.3rem)">${esc(p.t)}</h1><p class="lead">${esc(p.d)}</p><div class="notice warm">${I.lock}<span>Los pasos, plantillas y planos de este proyecto forman parte del plan Premium de la demo.</span></div><div class="actionbar"><button class="btn btn-dark" data-go="premium">${I.crown} Ver plan Premium</button><button class="btn btn-ghost" data-fav="${p.id}">${fav?'Guardado':'Guardar idea'}</button></div></div></div></section>`;
+  const kit = S.query?S.query.kit:S.profile.kit;
+  const done_steps = S.steps[p.id]||[];
+  const pct = Math.round(done_steps.length/p.s.length*100);
+  const objItems=p.m.filter(x=>x.obj), have=p.m.filter(x=>!x.obj&&!x.extra&&(!x.k||kit.includes(x.k))), need=p.m.filter(x=>!x.obj&&(x.extra||(x.k&&!kit.includes(x.k))));
+  const qty = S.query && S.query.material!==undefined ? S.query.qty : null;
+  const li=(x,cls,tag)=>`<li class="${cls}"><span class="dot">${cls==='need'?I.plus:I.check}</span>${esc(x.n)}<span class="tag">${tag}</span></li>`;
+  return `<section>
+  <div class="detail-grid">
+    <div class="detail-aside stack">
+      <div class="detail-art" id="detailArt">${artFor(p)}<span class="tagline">${p.premium?`<span class="badge prem">${I.crown} Premium</span>`:''}${done?`<span class="badge done">${I.check} Terminado</span>`:''}</span></div>
+      <p class="small muted">Ilustración de referencia. El resultado real depende de tu objeto.</p>
+      <div class="facts"><div class="fact"><span>Dificultad</span><b>${p.diff}</b></div><div class="fact"><span>Tiempo</span><b>${fmtMin(p.min)}</b></div><div class="fact"><span>Necesitas</span><b>${p.needs} ud.</b></div></div>
+    </div>
+    <div class="stack">
+      <div class="badges"><span class="badge">${MATN[p.mat]}</span><span class="badge">${styleName(p.style)}</span><span class="badge">${p.use}</span></div>
+      <h1 style="font-size:clamp(1.7rem,5vw,2.5rem)">${esc(p.t)}</h1>
+      <p class="lead">${esc(p.d)}</p>
+      ${qty!==null&&S.query&&S.query.mat===p.mat?`<div class="qtybox">${qty>=p.needs?`Con tus ${qty} ${qty===1?'unidad':'unidades'} ${p.needs===1&&qty>1?`puedes hacer <b>${qty}</b>, por ejemplo para regalar.`:'tienes suficiente.'}`:`Necesitas <b>${p.needs}</b> y tienes ${qty}. Puedes pedir a amistades o vecinos que te guarden los que les sobren.`}</div>`:''}
+      <div class="actionbar">
+        <button class="btn ${fav?'btn-dark':'btn-ghost'}" data-fav="${p.id}" aria-pressed="${fav}">${I.heart} ${fav?'Guardado':'Guardar'}</button>
+        <button class="btn btn-primary" data-done="${p.id}" ${done?'disabled':''}>${I.check} ${done?'Terminado':'Marcar como terminado'}</button>
+      </div>
+      <h2 style="margin-top:22px;font-size:1.35rem">Materiales</h2>
+      ${need.length?`<div class="notice warm">${I.info}<span>Esta idea necesita <b>${need.length} ${need.length===1?'material adicional':'materiales adicionales'}</b> que no tienes marcados.</span></div>`:`<div class="notice">${I.check}<span>Tienes todo lo necesario según tus materiales.</span></div>`}
+      <ul class="mlist">
+        ${objItems.map(x=>li(x,'have','Tu objeto')).join('')}
+        ${have.map(x=>li(x,'have','Ya lo tienes')).join('')}
+        ${need.map(x=>li(x,'need','Conseguir')).join('')}
+      </ul>
+      <div class="row" style="justify-content:space-between;margin-top:22px"><h2 style="font-size:1.35rem">Paso a paso</h2><span class="small muted" id="pctTxt">${done_steps.length}/${p.s.length} pasos</span></div>
+      <div class="progress" aria-hidden="true"><i id="pctBar" style="width:${pct}%"></i></div>
+      <ol class="steps">${p.s.map((s,i)=>{const ok=done_steps.includes(i);return `<li class="${ok?'ok':''}"><button class="check" data-step="${p.id}" data-i="${i}" aria-pressed="${ok}" aria-label="Marcar paso ${i+1} como hecho">${ok?I.check:''}</button><div><span class="sn">Paso ${i+1}</span><p>${esc(s)}</p></div></li>`}).join('')}</ol>
+      <div class="notice">${I.info}<span>Trabaja con cuidado con cúter, cristal y herramientas. Si hay electricidad de por medio, pide ayuda a alguien con experiencia.</span></div>
+      <div class="actionbar"><button class="btn btn-primary" data-done="${p.id}" ${done?'disabled':''}>${I.check} ${done?'¡Proyecto terminado!':'He terminado'}</button><button class="btn btn-ghost" data-action="surprise">${I.dice} Otra idea al azar</button></div>
+    </div>
+  </div></section>`;
+}
+
+function viewSaved(){
+  const favs=S.favs.map(id=>BY[id]).filter(Boolean), done=S.done.map(id=>BY[id]).filter(Boolean);
+  return `<section>
+    <p class="eyebrow">Tu colección</p>
+    <h1 style="margin:8px 0 18px;font-size:clamp(1.7rem,5vw,2.4rem)">Proyectos guardados</h1>
+    ${favs.length?`<div class="grid g3">${favs.map(p=>card(p)).join('')}</div>`:`<div class="empty card">${emptyArt()}<h3>Todavía no has guardado ideas</h3><p class="muted" style="max-width:40ch">Pulsa el corazón en cualquier proyecto para tenerlo a mano aquí.</p><div class="row" style="justify-content:center"><button class="btn btn-primary" data-go="explorar">Explorar ideas</button><button class="btn btn-ghost" data-action="surprise">${I.dice} Sorpréndeme</button></div></div>`}
+    <h2 style="margin:34px 0 14px">Terminados</h2>
+    ${done.length?`<div class="grid g3">${done.map(p=>card(p)).join('')}</div>`:`<p class="muted">Cuando marques un proyecto como terminado aparecerá aquí.</p>`}
+  </section>`;
+}
+
+function viewProfile(){
+  const pr=S.profile;
+  const g = S.done.reduce((a,id)=>a+(BY[id]?.g||0),0);
+  return `<section>
+    <div class="row" style="gap:14px">
+      <div class="avatar" aria-hidden="true">${esc((pr.name||'?').trim().charAt(0).toUpperCase()||'?')}</div>
+      <div><h1 style="font-size:1.7rem">${esc(pr.name||'Invitado')}</h1><p class="muted small">${S.premium?`<span class="badge prem">${I.crown} Premium (demo)</span>`:'Plan gratuito'} · perfil local de demostración</p></div>
+    </div>
+    <div class="stats" style="margin-top:18px"><div class="stat"><b>${S.favs.length}</b><span>Guardados</span></div><div class="stat"><b>${S.done.length}</b><span>Terminados</span></div><div class="stat"><b>${fmtKg(g)}</b><span>Evitado*</span></div></div>
+    <p class="small muted" style="margin-top:6px">*Estimación de ejemplo, no es una medición real.</p>
+  </section>
+  <section style="padding-top:0">
+    <div class="card pad form">
+      <h2 style="font-size:1.3rem">Preferencias</h2>
+      <div class="field"><label class="lbl" for="pname">Nombre</label><input class="input" id="pname" value="${esc(pr.name)}" maxlength="30"></div>
+      <div class="field"><span class="lbl">Estilo favorito</span><div class="checks" role="radiogroup" aria-label="Estilo favorito">${STYLES.map(s=>`<button class="chip ${pr.style===s.k?'on':''}" role="radio" aria-checked="${pr.style===s.k}" data-pstyle="${s.k}">${s.n}</button>`).join('')}</div><p class="hint">Se usa por defecto en el formulario y para ordenar ideas en Inicio.</p></div>
+      <div class="field"><span class="lbl">Tiempo habitual</span><div class="seg" role="radiogroup">${TIMES.map(t=>`<button class="${pr.time===t.v?'on':''}" role="radio" aria-checked="${pr.time===t.v}" data-ptime="${t.v}">${t.n}</button>`).join('')}</div></div>
+      <div class="field"><span class="lbl">Mi kit de materiales</span><div class="checks">${KIT.map(k=>`<button class="chip ${pr.kit.includes(k.k)?'on':''}" aria-pressed="${pr.kit.includes(k.k)}" data-pkit="${k.k}">${pr.kit.includes(k.k)?I.check:I.plus}${k.n}</button>`).join('')}</div></div>
+      <div class="row"><button class="btn btn-dark" data-action="saveProfile">Guardar preferencias</button></div>
+    </div>
+  </section>
+  <section style="padding-top:0">
+    <div class="menu">
+      <button data-go="impacto">${I.leaf} Mi impacto <span class="chev">${I.chev}</span></button>
+      <button data-go="premium">${I.crown} Planes: gratuito y Premium <span class="chev">${I.chev}</span></button>
+      <button data-go="como-funciona">${I.info} Cómo funciona y propósito <span class="chev">${I.chev}</span></button>
+      <button data-action="reset" style="color:#a43e1b">${I.x} Reiniciar la demo <span class="chev">${I.chev}</span></button>
+    </div>
+    <p class="small muted" style="margin-top:12px">En esta demo no hay cuentas ni servidor: tus datos se guardan solo en este navegador.</p>
+  </section>`;
+}
+
+function viewImpact(){
+  const done=S.done.map(id=>BY[id]).filter(Boolean);
+  const g=done.reduce((a,p)=>a+p.g,0);
+  const byMat={}; done.forEach(p=>byMat[p.mat]=(byMat[p.mat]||0)+p.g);
+  const max=Math.max(1,...Object.values(byMat));
+  const co2 = Math.round(g*1.5/100)/10; // factor de ejemplo
+  return `<section>
+    <p class="eyebrow">Impacto</p>
+    <h1 style="margin:8px 0 10px;font-size:clamp(1.7rem,5vw,2.4rem)">Lo que suma reutilizar</h1>
+    <div class="notice warm">${I.info}<span><b>Cifras de ejemplo.</b> Los pesos y equivalencias de esta sección son estimaciones ilustrativas para la demo, no datos reales verificados.</span></div>
+  </section>
+  <section style="padding-top:0">
+    <div class="grid g3">
+      <div class="card pad"><p class="muted small">Residuo evitado (estimado)</p><p class="big" style="margin-top:6px">${fmtKg(g)}</p></div>
+      <div class="card pad"><p class="muted small">Objetos reutilizados</p><p class="big" style="margin-top:6px">${done.length}</p></div>
+      <div class="card pad"><p class="muted small">CO₂ evitado (ejemplo)</p><p class="big" style="margin-top:6px">${co2.toLocaleString('es-ES')} kg</p></div>
+    </div>
+    <div class="card pad" style="margin-top:16px">
+      <h3 style="margin-bottom:14px">Materiales aprovechados</h3>
+      ${done.length?`<div class="bars">${Object.entries(byMat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bar"><span>${MATN[k]}</span><span class="tr"><i style="width:${v/max*100}%"></i></span><span class="v">${fmtKg(v)}</span></div>`).join('')}</div>`
+      :`<div class="empty" style="padding:16px">${emptyArt()}<p class="muted">Aún no has terminado ningún proyecto. Marca uno como terminado y verás aquí tu impacto estimado.</p><button class="btn btn-primary" data-action="surprise">${I.dice} Elegir un proyecto</button></div>`}
+    </div>
+  </section>
+  <section>
+    <h2 style="margin-bottom:14px">Por qué reutilizar antes que reciclar</h2>
+    <div class="grid g3">
+      ${[['Menos residuos','Cada objeto que reutilizas es uno menos en el contenedor y uno nuevo que no hace falta fabricar.'],['Menos energía','Reciclar también consume energía y transporte. Reutilizar en casa apenas necesita recursos.'],['Más valor','Piezas únicas, hechas por ti, que cuentan una historia y ahorran dinero.']].map(x=>`<div class="card pad"><span style="color:var(--moss)">${I.leaf}</span><h3 style="margin:8px 0 6px">${x[0]}</h3><p class="muted small">${x[1]}</p></div>`).join('')}
+    </div>
+    <div class="card pad" style="margin-top:16px">
+      <h3>Comunidad demo · semana de ejemplo</h3>
+      <p class="muted small" style="margin:4px 0 14px">Datos inventados para mostrar cómo se vería un panel colectivo.</p>
+      <div class="bars">${[['Cristal',420],['Textil',310],['Cartón',260],['Metal',140],['Plástico',90]].map(([n,v])=>`<div class="bar"><span>${n}</span><span class="tr"><i style="width:${v/420*100}%;background:var(--accent)"></i></span><span class="v">${v} kg</span></div>`).join('')}</div>
+    </div>
+  </section>`;
+}
+
+function viewPremium(){
+  const yes=t=>`<li>${I.check}<span>${t}</span></li>`, no=t=>`<li class="no">${I.x}<span>${t}</span></li>`;
+  return `<section>
+    <p class="eyebrow">Planes</p>
+    <h1 style="margin:8px 0 10px;font-size:clamp(1.7rem,5vw,2.4rem)">Gratis para empezar, Premium para ir más allá</h1>
+    <div class="notice">${I.info}<span>Vista de demostración: no hay pagos reales. El botón activa Premium solo en este navegador para que puedas ver cómo cambia la app.</span></div>
+  </section>
+  <section style="padding-top:0">
+    <div class="plans">
+      <div class="card plan">
+        <h2 style="font-size:1.3rem">Gratuito</h2>
+        <p class="price">0 € <small>/ siempre</small></p>
+        <ul class="feat">${yes('Ideas a partir de tu objeto y material')}${yes('Filtros por estilo, dificultad, tiempo y uso')}${yes('Guardar favoritos y marcar terminados')}${yes('Instrucciones paso a paso')}${no('Proyectos avanzados con plantillas y planos')}${no('Lista de compra y alternativas de materiales')}</ul>
+        <button class="btn btn-ghost" ${!S.premium?'disabled':''} data-action="toFree">${S.premium?'Volver al plan gratuito':'Tu plan actual'}</button>
+      </div>
+      <div class="card plan pro">
+        <div class="row" style="justify-content:space-between"><h2 style="font-size:1.3rem">Premium</h2><span class="badge prem">${I.crown} Demo</span></div>
+        <p class="price">3,99 € <small>/ mes · precio de ejemplo</small></p>
+        <ul class="feat">${yes('Todo lo del plan gratuito')}${yes('Proyectos avanzados con plantillas y planos')}${yes('Lista de compra y materiales alternativos')}${yes('Seguimiento de impacto mensual')}${yes('Retos de temporada con la comunidad')}</ul>
+        <button class="btn btn-primary" data-action="toPremium" ${S.premium?'disabled':''}>${S.premium?'Premium activo (demo)':'Probar Premium en la demo'}</button>
+        <p class="small muted">No se pide ningún dato de pago.</p>
+      </div>
+    </div>
+    <h3 style="margin:24px 0 10px">Ideas Premium del catálogo</h3>
+    <div class="grid g3">${P.filter(p=>p.premium).map(p=>card(p)).join('')}</div>
+  </section>`;
+}
+
+function viewHow(){
+  return `<section>
+    <p class="eyebrow">Cómo funciona</p>
+    <h1 style="margin:8px 0 10px;font-size:clamp(1.7rem,5vw,2.4rem)">De objeto olvidado a pieza útil</h1>
+    <p class="lead">Segunda Vida te ayuda a decidir qué hacer con lo que ya tienes en casa, en tres pasos.</p>
+  </section>
+  <section style="padding-top:0">
+    <div class="stack">
+      ${[['1. Describe tu objeto','Escribe qué es (por ejemplo, “tarro de cristal”). La app intenta reconocer el material; también puedes elegirlo. Añade cuántos tienes, tu estilo, el tiempo y tus materiales.'],['2. Compara ideas','Recibes proyectos ordenados por cómo encajan contigo. Cada tarjeta indica dificultad, tiempo y si necesitas comprar algo. Filtra por estilo, dificultad, tiempo o uso.'],['3. Crea y celebra','Abre el proyecto, sigue los pasos marcándolos y, al terminar, regístralo para ver tu impacto estimado.']].map(x=>`<div class="card pad"><h3>${x[0]}</h3><p class="muted" style="margin-top:6px">${x[1]}</p></div>`).join('')}
+    </div>
+    <div class="notice warm" style="margin-top:16px">${I.info}<span><b>Qué es real en esta demo:</b> la navegación, los filtros, favoritos, pasos y preferencias funcionan y se guardan en tu navegador. <b>Qué está simulado:</b> las ideas vienen de un catálogo fijo de ${P.length} proyectos de ejemplo y se ordenan con reglas sencillas. No hay cuentas, pagos ni base de datos.</span></div>
+  </section>
+  <section id="proposito">
+    <div class="card pad" style="background:var(--moss);color:#F5F0E6;border-color:var(--moss)">
+      <p class="eyebrow" style="color:#f2c3ad">Nuestro propósito</p>
+      <h2 style="margin:6px 0 10px">Reducir, reutilizar y luego reciclar</h2>
+      <p style="color:#d7e2da">Muchos objetos acaban en la basura cuando aún pueden servir. Queremos que reutilizar sea fácil, bonito y práctico, para que aprovechar lo que ya existe sea la primera opción y no la última.</p>
+      <div class="grid g3" style="margin-top:16px">${[['Accesible','Ideas con herramientas comunes y pasos claros.'],['Útil','Proyectos pensados para usarse cada día, no solo para decorar.'],['Honesta','Indicamos qué materiales extra hacen falta y tratamos las cifras de impacto como estimaciones.']].map(x=>`<div style="background:rgba(255,255,255,.08);border-radius:14px;padding:14px"><b>${x[0]}</b><p class="small" style="color:#d7e2da;margin-top:4px">${x[1]}</p></div>`).join('')}</div>
+    </div>
+    <div class="row" style="margin-top:18px"><button class="btn btn-primary" data-go="crear">Probar ahora</button><button class="btn btn-ghost" data-go="explorar">Explorar ideas</button></div>
+  </section>`;
+}
+function viewNotFound(){return `<div class="empty">${emptyArt()}<h2>Esta página no existe</h2><button class="btn btn-primary" data-go="inicio">Ir al inicio</button></div>`}
+
+/* ================= ACCIONES ================= */
+let toastT;
+function toast(msg,undo){
+  const t=document.getElementById('toast');
+  t.innerHTML=`<span>${msg}</span>${undo?'<button data-undo>Deshacer</button>':''}`;
+  t.classList.add('show'); clearTimeout(toastT);
+  t._undo=undo; toastT=setTimeout(()=>t.classList.remove('show'),2800);
+}
+document.getElementById('toast').addEventListener('click',e=>{if(e.target.matches('[data-undo]')){const t=e.currentTarget;t._undo&&t._undo();t.classList.remove('show');}});
+
+function toggleFav(id,btn){
+  const i=S.favs.indexOf(id);
+  if(i>=0){S.favs.splice(i,1);save();render();toast('Quitado de guardados',()=>{S.favs.push(id);save();render();});}
+  else{S.favs.push(id);save();render();const b=document.querySelector(`.fav[data-fav="${id}"]`);b&&b.classList.add('pop');toast('Guardado en tus proyectos');}
+}
+function markDone(id){
+  const p=BY[id]; if(!p||S.done.includes(id))return;
+  S.done.push(id); S.steps[id]=p.s.map((_,i)=>i); save(); render(); celebrate(p);
+}
+function celebrate(p){
+  const m=document.getElementById('modal');
+  const colors=['#C8562E','#2F5D45','#E8B04B','#7fb1c9','#E9B9A6'];
+  const conf=Array.from({length:40},(_,i)=>`<i style="left:${Math.random()*100}%;background:${colors[i%5]};animation-delay:${Math.random()*.5}s;transform:rotate(${Math.random()*180}deg)"></i>`).join('');
+  m.innerHTML=`<div class="sheet"><div class="confetti">${conf}</div>
+    <svg class="medal" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="44" fill="#E2ECE3"/><circle cx="48" cy="48" r="32" fill="#2F5D45"/><path d="M34 49l9 9 19-20" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h2 id="modalTitle">¡Lo has conseguido!</h2>
+    <p class="muted" style="margin:8px 0 6px">Has dado una segunda vida a tu ${esc(MATN[p.mat].toLowerCase())} con <b style="color:var(--ink)">${esc(p.t)}</b>.</p>
+    <p class="small" style="color:var(--moss);font-weight:600">≈ ${fmtKg(p.g)} de residuo evitado · estimación de ejemplo</p>
+    <div class="row" style="margin-top:18px;justify-content:center"><button class="btn btn-primary" data-modal="impacto">Ver mi impacto</button><button class="btn btn-ghost" data-modal="close">Seguir creando</button></div></div>`;
+  m.classList.add('show');
+  setTimeout(()=>m.querySelector('[data-modal="impacto"]').focus(),50);
+}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+document.getElementById('modal').addEventListener('click',e=>{
+  if(e.target.id==='modal'){closeModal();return;}
+  const b=e.target.closest('[data-modal]'); if(!b)return;
+  closeModal(); if(b.dataset.modal==='impacto') go('impacto');
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+function surprise(){
+  const pool=P.filter(p=>!locked(p)&&('proyecto-'+p.id)!==route);
+  const p=pool[Math.floor(Math.random()*pool.length)];
+  go('proyecto-'+p.id);
+  const a=document.getElementById('detailArt'); a&&a.classList.add('shuffle');
+  toast('Idea sorpresa: '+esc(p.t));
+}
+function runSearch(q){
+  S.query={...q, mat: q.material==='auto'?detectMaterial(q.obj):q.material};
+  S.rfilters={style:'',diff:'',time:'',use:''};
+  go('cargando');
+  setTimeout(()=>{ if(route==='cargando'){ route='resultados'; try{history.replaceState(null,'','#resultados')}catch(e){} render(); window.scrollTo(0,0);} },900);
+}
+function exampleQuery(i){
+  const e=EXAMPLES[i];
+  S.form={obj:e.obj,material:e.material,qty:e.qty,style:e.style,time:S.profile.time,kit:[...S.profile.kit]};
+  runSearch({obj:e.obj,material:e.material,qty:e.qty,style:e.style,time:S.profile.time,kit:[...S.profile.kit]});
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button,[data-go]'); if(!t)return;
+  const d=t.dataset;
+  if(d.go){go(d.go);return;}
+  if(d.open){go('proyecto-'+d.open);return;}
+  if(d.fav){e.stopPropagation();toggleFav(d.fav,t);return;}
+  if(d.done){markDone(d.done);return;}
+  if(d.example!==undefined){exampleQuery(+d.example);return;}
+  if(d.cat){ if(route==='explorar'){S.explore.cat = S.explore.cat===d.cat?'':d.cat;render();} else {S.explore={q:'',cat:d.cat};S.efilters={style:'',diff:'',time:'',use:''};go('explorar');} return;}
+  if(d.filter){S[d.filter][d.key]=d.val;const y=window.scrollY;render();window.scrollTo(0,y);return;}
+  if(d.clearfilters){S[d.clearfilters]={style:'',diff:'',time:'',use:''};render();return;}
+  if(d.step){
+    const arr=S.steps[d.step]=S.steps[d.step]||[]; const i=+d.i; const k=arr.indexOf(i);
+    k>=0?arr.splice(k,1):arr.push(i); save();
+    const y=window.scrollY; render(); window.scrollTo(0,y);
+    const p=BY[d.step]; if(arr.length===p.s.length && !S.done.includes(p.id)) toast('¡Todos los pasos hechos! Marca el proyecto como terminado.');
+    return;
+  }
+  // formulario
+  if(d.qty){syncForm();S.form.qty=Math.max(1,Math.min(99,S.form.qty+(+d.qty)));document.getElementById('qtyOut').textContent=S.form.qty;return;}
+  if(d.fstyle){syncForm();S.form.style=d.fstyle;rerenderKeep();return;}
+  if(d.ftime){syncForm();S.form.time=+d.ftime;rerenderKeep();return;}
+  if(d.fkit){syncForm();const k=S.form.kit||[...S.profile.kit];const i=k.indexOf(d.fkit);i>=0?k.splice(i,1):k.push(d.fkit);S.form.kit=k;rerenderKeep();return;}
+  if(d.fillexample!==undefined){const ex=EXAMPLES[+d.fillexample];S.form={...S.form,obj:ex.obj,material:ex.material,qty:ex.qty,style:ex.style};rerenderKeep();toast('Ejemplo cargado: pulsa “Ver ideas”');return;}
+  // perfil
+  if(d.pstyle){syncProfileName();S.profile.style=d.pstyle;save();rerenderKeep();toast('Estilo favorito: '+styleName(d.pstyle));return;}
+  if(d.ptime){syncProfileName();S.profile.time=+d.ptime;save();rerenderKeep();return;}
+  if(d.pkit){syncProfileName();const k=S.profile.kit;const i=k.indexOf(d.pkit);i>=0?k.splice(i,1):k.push(d.pkit);save();rerenderKeep();return;}
+  switch(d.action){
+    case 'back': back(); break;
+    case 'surprise': surprise(); break;
+    case 'clearForm': S.form={obj:'',material:'auto',qty:1,style:null,time:null,kit:null}; render(); break;
+    case 'clearExplore': S.explore={q:'',cat:''}; S.efilters={style:'',diff:'',time:'',use:''}; render(); break;
+    case 'saveProfile': syncProfileName(); save(); render(); toast('Preferencias guardadas'); break;
+    case 'toPremium': S.premium=true; save(); render(); toast('Premium activado en la demo · sin pagos reales'); break;
+    case 'toFree': S.premium=false; save(); render(); toast('Has vuelto al plan gratuito'); break;
+    case 'reset': {
+      const prev=JSON.stringify({profile:S.profile,favs:S.favs,done:S.done,steps:S.steps,premium:S.premium});
+      const fresh=structuredClone(DEFAULT); Object.assign(S,fresh); save(); stack=[]; go('inicio',{replace:true,force:true});
+      toast('Demo reiniciada',()=>{Object.assign(S,JSON.parse(prev));save();render();}); break;
+    }
+  }
+});
+function rerenderKeep(){const y=window.scrollY;render();window.scrollTo(0,y);}
+function syncForm(){
+  const o=document.getElementById('obj'), m=document.getElementById('material');
+  if(o) S.form.obj=o.value; if(m) S.form.material=m.value;
+}
+function syncProfileName(){const n=document.getElementById('pname'); if(n) S.profile.name=n.value.trim()||'Invitado';}
+
+document.addEventListener('input',e=>{
+  if(e.target.id==='searchInput'){S.explore.q=e.target.value;S._focusSearch=true;render();}
+  if(e.target.id==='obj'){
+    S.form.obj=e.target.value; e.target.classList.remove('err'); document.getElementById('objErr').hidden=true;
+    const det = document.getElementById('material').value==='auto'?detectMaterial(e.target.value):null;
+    document.getElementById('objHint').innerHTML = det?`Material detectado: <b>${MATN[det]}</b>`:(e.target.value.trim()?'No reconocemos el material: elígelo en la lista.':'Escribe el objeto y detectaremos el material, o elígelo abajo.');
+  }
+});
+document.addEventListener('change',e=>{if(e.target.id==='material'){syncForm();}});
+document.addEventListener('submit',e=>{
+  if(e.target.id!=='createForm')return;
+  e.preventDefault(); syncForm();
+  const f=S.form;
+  if(!f.obj.trim()){const o=document.getElementById('obj');o.classList.add('err');document.getElementById('objErr').hidden=false;o.focus();return;}
+  if(f.material==='auto' && !detectMaterial(f.obj)){
+    const m=document.getElementById('material'); m.focus();
+    document.getElementById('objHint').innerHTML='<b style="color:#a43e1b">No reconocemos el material.</b> Elígelo en la lista para continuar.';
+    return;
+  }
+  runSearch({obj:f.obj.trim(),material:f.material,qty:f.qty,style:f.style||S.profile.style,time:f.time||S.profile.time,kit:[...(f.kit||S.profile.kit)]});
+});
+
+/* ================= INICIO ================= */
+const h=location.hash.slice(1);
+route = (h && h!=='cargando' && h!=='resultados') ? h : 'inicio';
+render();
+})();
+</script>
+</body>
+</html>
